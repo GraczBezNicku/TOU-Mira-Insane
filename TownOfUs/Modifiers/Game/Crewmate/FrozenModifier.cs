@@ -1,11 +1,12 @@
 ﻿using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.Modifiers.Types;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Modifiers.Crewmate;
 
 namespace TownOfUs.Modifiers.Game.Crewmate;
 
-public sealed class FrozenModifier : TimedModifier
+public sealed class FrozenModifier(PlayerControl freezer) : TimedModifier
 {
     public override string ModifierName => "Frozen";
     public override bool HideOnUi => true;
@@ -13,6 +14,8 @@ public sealed class FrozenModifier : TimedModifier
 
     private float SpeedCache { get; set; }
     private DateTime ApplicationTime { get; set; }
+
+    public PlayerControl Freezer { get; set; } = freezer;
 
     public override void OnDeath(DeathReason reason)
     {
@@ -23,7 +26,15 @@ public sealed class FrozenModifier : TimedModifier
     {
         ApplicationTime = DateTime.UtcNow;
         SpeedCache = Player.MyPhysics.Speed;
-        Player.MyPhysics.Speed *= OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed;
+
+        float targetMultiplier = OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed;
+
+        if (Freezer.HasModifier<InsaneModifier>())
+        {
+            targetMultiplier = 1 + (1 - OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed);
+        }
+
+        Player.MyPhysics.Speed *= targetMultiplier;
     }
 
     public override void OnDeactivate()

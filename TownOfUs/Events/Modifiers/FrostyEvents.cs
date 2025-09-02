@@ -30,6 +30,6 @@ public static class FrostyEvents
             notif1.transform.localPosition = new Vector3(0f, 1f, -20f);
         }
 
-        @event.Source.AddModifier<FrozenModifier>();
+        @event.Source.AddModifier<FrozenModifier>(@event.Target);
     }
 }
