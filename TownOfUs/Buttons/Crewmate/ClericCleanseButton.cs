@@ -10,6 +10,7 @@ using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Utilities;
 using UnityEngine;
+using static TownOfUs.Modifiers.Crewmate.ClericCleanseModifier;
 
 namespace TownOfUs.Buttons.Crewmate;
 
@@ -41,14 +42,16 @@ public sealed class ClericCleanseButton : TownOfUsRoleButton<ClericRole, PlayerC
 
         if (PlayerControl.LocalPlayer.TryGetModifier<InsaneModifier>(out var insane))
         {
+            List<EffectType> effects = ClericCleanseModifier.FindNegativeEffects(Target);
+
             if (insane.PlayerIdToFakeCleansedEffects.ContainsKey(Target.PlayerId))
                 insane.PlayerIdToFakeCleansedEffects[Target.PlayerId].Clear();
             else
                 insane.PlayerIdToFakeCleansedEffects.Add(Target.PlayerId, new List<ClericCleanseModifier.EffectType>());
 
-            int randomEffectCount = UnityEngine.Random.Range(0, Enum.GetValues<ClericCleanseModifier.EffectType>().Length);
+            int effectsToFake = effects.Count() == 0 ? 1 : effects.Count();
 
-            for (int i = 0; i <= randomEffectCount; i++)
+            for (int i = 0; i < effectsToFake; i++)
             {
                 insane.PlayerIdToFakeCleansedEffects[Target.PlayerId]
                     .Add(Enum.GetValues<ClericCleanseModifier.EffectType>().Where(x => !insane.PlayerIdToFakeCleansedEffects[Target.PlayerId].Contains(x)).Random());

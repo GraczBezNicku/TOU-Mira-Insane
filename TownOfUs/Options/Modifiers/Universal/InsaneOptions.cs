@@ -66,6 +66,9 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
         if (options.InsaneTiebreaker)
             eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Tiebreaker, "Tiebreaker"));
 
+        if (options.InsaneCleric)
+            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Cleric, "Cleric"));
+
         ITownOfUsRole role = player.GetTownOfUsRole();
         BaseModifier[] modifiers = player.GetModifiers<BaseModifier>().ToArray();
 

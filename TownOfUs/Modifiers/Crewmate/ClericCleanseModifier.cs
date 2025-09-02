@@ -40,6 +40,14 @@ public sealed class ClericCleanseModifier(PlayerControl cleric) : BaseModifier
 
         Effects = FindNegativeEffects(Player);
 
+        if (Cleric != null 
+            && Cleric.TryGetModifier<InsaneModifier>(out var insane)
+            && PlayerControl.LocalPlayer == Cleric)
+        {
+            if (insane.PlayerIdToFakeCleansedEffects.TryGetValue(Player.PlayerId, out List<EffectType>? value))
+                Effects = new(value);
+        }
+
         // Logger<TownOfUsPlugin>.Error($"ClericCleanseModifier.OnActivate");
     }
 
