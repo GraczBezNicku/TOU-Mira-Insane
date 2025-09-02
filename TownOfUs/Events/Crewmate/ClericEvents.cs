@@ -8,7 +8,9 @@ using MiraAPI.Hud;
 using MiraAPI.Modifiers;
 using TownOfUs.Modifiers;
 using TownOfUs.Modifiers.Crewmate;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options;
+using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Utilities;
 
@@ -78,6 +80,14 @@ public static class ClericEvents
             (source.TryGetModifier<IndirectAttackerModifier>(out var indirect) && indirect.IgnoreShield))
         {
             return false;
+        }
+
+        if (target.GetModifier<ClericBarrierModifier>().Cleric.HasModifier<InsaneModifier>())
+        {
+            InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
+
+            if (!options.InsaneClericProtects)
+                return false;
         }
 
         @event.Cancel();

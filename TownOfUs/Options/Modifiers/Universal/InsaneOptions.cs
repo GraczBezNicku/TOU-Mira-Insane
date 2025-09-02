@@ -123,6 +123,13 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
     [ModdedEnumOption("Insane Altruist Does", typeof(InsaneAltruistAction), ["Dies and Reports", "Dies", "Reports"])]
     public InsaneAltruistAction InsaneAltruistAbility { get; set; } = InsaneAltruistAction.DiesAndReport;
 
+    [ModdedToggleOption("Cleric Can Be Insane")]
+    public bool InsaneCleric { get; set; } = false;
+    [ModdedToggleOption("Insane Cleric Protects")]
+    public bool InsaneClericProtects { get; set; } = true;
+    [ModdedToggleOption("Insane Cleric's Cleanse Works")]
+    public bool InsaneClericCleanseWorks { get; set; } = false;
+
     [ModdedToggleOption("Guardian Angel Can Be Insane")]
     public bool InsaneGuardianAngel { get; set; } = false;
 
@@ -138,7 +145,6 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
     [ModdedToggleOption("Sleuth Can Be Insane")]
     public bool InsaneSleuth { get; set; } = false;
 
-    // Throws out opposite player
     [ModdedToggleOption("Tiebreaker Can Be Insane")]
     public bool InsaneTiebreaker { get; set; } = false;
 }

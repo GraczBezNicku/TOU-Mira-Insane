@@ -35,7 +35,11 @@ public class InsaneModifier : BaseModifier, IWikiDiscoverable
 
     public override bool HideOnUi => !WasRevealed;
 
+    // Sleuth
     public Dictionary<byte, string> PlayerIdToFakeSleuthRole = new Dictionary<byte, string>();
+
+    // Cleric
+    public Dictionary<byte, List<ClericCleanseModifier.EffectType>> PlayerIdToFakeCleansedEffects = new Dictionary<byte, List<ClericCleanseModifier.EffectType>>();
 
     // Make it so CONFIRMED dead players have this set to true!
     public bool WasRevealed = false;

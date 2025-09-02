@@ -3,7 +3,9 @@ using MiraAPI.Hud;
 using MiraAPI.Modifiers;
 using MiraAPI.Utilities.Assets;
 using Reactor.Utilities;
+using Reactor.Utilities.Extensions;
 using TownOfUs.Modifiers.Crewmate;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Utilities;
@@ -35,6 +37,33 @@ public sealed class ClericCleanseButton : TownOfUsRoleButton<ClericRole, PlayerC
         if (Target.HasModifier<ClericCleanseModifier>())
         {
             Target.RpcRemoveModifier<ClericCleanseModifier>();
+        }
+
+        if (PlayerControl.LocalPlayer.TryGetModifier<InsaneModifier>(out var insane))
+        {
+            if (insane.PlayerIdToFakeCleansedEffects.ContainsKey(Target.PlayerId))
+                insane.PlayerIdToFakeCleansedEffects[Target.PlayerId].Clear();
+            else
+                insane.PlayerIdToFakeCleansedEffects.Add(Target.PlayerId, new List<ClericCleanseModifier.EffectType>());
+
+            int randomEffectCount = UnityEngine.Random.Range(0, Enum.GetValues<ClericCleanseModifier.EffectType>().Length);
+
+            for (int i = 0; i <= randomEffectCount; i++)
+            {
+                insane.PlayerIdToFakeCleansedEffects[Target.PlayerId]
+                    .Add(Enum.GetValues<ClericCleanseModifier.EffectType>().Where(x => !insane.PlayerIdToFakeCleansedEffects[Target.PlayerId].Contains(x)).Random());
+            }
+
+            Target.RpcAddModifier<ClericCleanseModifier>(PlayerControl.LocalPlayer);
+
+            if (insane.PlayerIdToFakeCleansedEffects[Target.PlayerId].Count > 0)
+            {
+                Coroutines.Start(MiscUtils.CoFlash(TownOfUsColors.Cleric));
+            }
+
+            CustomButtonSingleton<ClericBarrierButton>.Instance.ResetCooldownAndOrEffect();
+
+            return;
         }
 
         Target.RpcAddModifier<ClericCleanseModifier>(PlayerControl.LocalPlayer);

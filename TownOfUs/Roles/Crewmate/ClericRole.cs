@@ -1,10 +1,12 @@
-﻿using System.Text;
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using Il2CppInterop.Runtime.Attributes;
 using MiraAPI.GameOptions;
+using MiraAPI.Modifiers;
 using MiraAPI.Roles;
 using Reactor.Networking.Attributes;
 using Reactor.Utilities;
+using System.Text;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Utilities;
 using UnityEngine;
@@ -65,7 +67,14 @@ public sealed class ClericRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
             (PlayerControl.LocalPlayer.PlayerId == cleric.PlayerId &&
              OptionGroupSingleton<ClericOptions>.Instance.AttackNotif))
         {
-            Coroutines.Start(MiscUtils.CoFlash(TownOfUsColors.Cleric));
+            float delay = 0;
+
+            if (PlayerControl.LocalPlayer.HasModifier<InsaneModifier>())
+            {
+                delay = UnityEngine.Random.Range(5, 10);
+            }
+
+            Coroutines.Start(MiscUtils.CoFlash(TownOfUsColors.Cleric, delay: delay));
         }
     }
 }

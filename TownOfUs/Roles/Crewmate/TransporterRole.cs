@@ -1,6 +1,6 @@
-﻿using System.Text;
-using Il2CppInterop.Runtime.Attributes;
+﻿using Il2CppInterop.Runtime.Attributes;
 using MiraAPI.Events;
+using MiraAPI.GameOptions;
 using MiraAPI.Hud;
 using MiraAPI.Modifiers;
 using MiraAPI.Networking;
@@ -8,6 +8,7 @@ using MiraAPI.Roles;
 using MiraAPI.Utilities;
 using Reactor.Networking.Attributes;
 using Reactor.Utilities;
+using System.Text;
 using TownOfUs.Buttons.Crewmate;
 using TownOfUs.Events.Crewmate;
 using TownOfUs.Events.TouEvents;
@@ -18,10 +19,12 @@ using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modifiers.Impostor;
 using TownOfUs.Modifiers.Neutral;
 using TownOfUs.Modules;
+using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Roles.Impostor;
 using TownOfUs.Roles.Neutral;
 using TownOfUs.Utilities;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 namespace TownOfUs.Roles.Crewmate;
 
@@ -117,10 +120,22 @@ public sealed class TransporterRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITown
         {
             if (transporter.AmOwner)
             {
-                ClericRole.RpcClericBarrierAttacked(cleric.Player, transporter, play1);
-            }
+                if (cleric.Player.HasModifier<InsaneModifier>())
+                {
+                    InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
 
-            return;
+                    if (options.InsaneClericProtects)
+                    {
+                        ClericRole.RpcClericBarrierAttacked(cleric.Player, transporter, play1);
+                        return;
+                    }
+                }
+                else
+                {
+                    ClericRole.RpcClericBarrierAttacked(cleric.Player, transporter, play1);
+                    return;
+                }
+            }
         }
 
         var cleric2 = play2.GetModifier<ClericBarrierModifier>()?.Cleric.GetRole<ClericRole>();
@@ -128,7 +143,21 @@ public sealed class TransporterRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITown
         {
             if (transporter.AmOwner)
             {
-                ClericRole.RpcClericBarrierAttacked(cleric2.Player, transporter, play2);
+                if (cleric2.Player.HasModifier<InsaneModifier>())
+                {
+                    InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
+
+                    if (options.InsaneClericProtects)
+                    {
+                        ClericRole.RpcClericBarrierAttacked(cleric2.Player, transporter, play2);
+                        return;
+                    }
+                }
+                else
+                {
+                    ClericRole.RpcClericBarrierAttacked(cleric2.Player, transporter, play2);
+                    return;
+                }
             }
 
             return;
