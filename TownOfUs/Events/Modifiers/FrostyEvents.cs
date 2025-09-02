@@ -4,6 +4,7 @@ using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.Utilities;
 using TownOfUs.Modifiers.Game.Crewmate;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Modifiers.Crewmate;
 using UnityEngine;
 
@@ -22,9 +23,19 @@ public static class FrostyEvents
 
         if (@event.Source.AmOwner)
         {
-            var notif1 = Helpers.CreateAndShowNotification(
-                $"<b>{TownOfUsColors.Frosty.ToTextColor()}{@event.Target.Data.PlayerName} was Frosty, causing you to be slower for {Math.Round(OptionGroupSingleton<FrostyOptions>.Instance.ChillDuration, 2)} seconds.</color></b>",
-                Color.white, spr: TouModifierIcons.Frosty.LoadAsset());
+            LobbyNotificationMessage notif1 = null;
+            if (@event.Target.HasModifier<InsaneModifier>())
+            {
+                notif1 = notif1 = Helpers.CreateAndShowNotification(
+                    $"<b>{TownOfUsColors.Frosty.ToTextColor()}{@event.Target.Data.PlayerName} was {TownOfUsColors.Insane.ToTextColor()}Insane</color> and Frosty, causing you to be faster for {Math.Round(OptionGroupSingleton<FrostyOptions>.Instance.ChillDuration, 2)} seconds.</color></b>",
+                    Color.white, spr: TouModifierIcons.Frosty.LoadAsset());
+            }
+            else
+            {
+                notif1 = Helpers.CreateAndShowNotification(
+                    $"<b>{TownOfUsColors.Frosty.ToTextColor()}{@event.Target.Data.PlayerName} was Frosty, causing you to be slower for {Math.Round(OptionGroupSingleton<FrostyOptions>.Instance.ChillDuration, 2)} seconds.</color></b>",
+                    Color.white, spr: TouModifierIcons.Frosty.LoadAsset());
+            }
 
             notif1.Text.SetOutlineThickness(0.35f);
             notif1.transform.localPosition = new Vector3(0f, 1f, -20f);

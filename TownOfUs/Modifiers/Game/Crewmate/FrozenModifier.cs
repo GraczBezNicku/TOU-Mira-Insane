@@ -17,6 +17,8 @@ public sealed class FrozenModifier(PlayerControl freezer) : TimedModifier
 
     public PlayerControl Freezer { get; set; } = freezer;
 
+    public float TargetMultiplier;
+
     public override void OnDeath(DeathReason reason)
     {
         Player.RemoveModifier(this);
@@ -27,14 +29,14 @@ public sealed class FrozenModifier(PlayerControl freezer) : TimedModifier
         ApplicationTime = DateTime.UtcNow;
         SpeedCache = Player.MyPhysics.Speed;
 
-        float targetMultiplier = OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed;
+        TargetMultiplier = OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed;
 
         if (Freezer.HasModifier<InsaneModifier>())
         {
-            targetMultiplier = 1 + (1 - OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed);
+            TargetMultiplier = 1 + (1 - OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed);
         }
 
-        Player.MyPhysics.Speed *= targetMultiplier;
+        Player.MyPhysics.Speed *= TargetMultiplier;
     }
 
     public override void OnDeactivate()
@@ -48,7 +50,8 @@ public sealed class FrozenModifier(PlayerControl freezer) : TimedModifier
 
         var timeSpan = DateTime.UtcNow - ApplicationTime;
         var duration = Duration * 1000f;
+
         Player.MyPhysics.Speed = SpeedCache * 1 - (duration - (float)timeSpan.TotalMilliseconds) *
-            (1 - OptionGroupSingleton<FrostyOptions>.Instance.ChillStartSpeed) / duration;
+            (1 - TargetMultiplier) / duration;
     }
 }
