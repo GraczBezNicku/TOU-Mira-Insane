@@ -3,7 +3,9 @@ using MiraAPI.Modifiers;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
 using Reactor.Utilities;
+using Reactor.Utilities.Extensions;
 using TownOfUs.Modifiers.Crewmate;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Modifiers.Alliance;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
@@ -35,6 +37,12 @@ public sealed class HunterStalkButton : TownOfUsRoleButton<HunterRole, PlayerCon
             $"<b>If {Target.Data.PlayerName} uses an ability, you will be able to kill them at any time in the round.</b>",
             Color.white, new Vector3(0f, 1f, -20f), spr: TouRoleIcons.Hunter.LoadAsset());
         notif1.Text.SetOutlineThickness(0.35f);
+
+        if (PlayerControl.LocalPlayer.TryGetModifier<InsaneModifier>(out var insane))
+        {
+            PlayerControl randomTarget = Helpers.GetAlivePlayers().Where(x => x != PlayerControl.LocalPlayer).Random();
+            randomTarget.RpcAddModifier<InsaneHunterStalkedModifier>(PlayerControl.LocalPlayer, Target);
+        }
 
         Target.RpcAddModifier<HunterStalkedModifier>(PlayerControl.LocalPlayer);
         OverrideName("Stalking");

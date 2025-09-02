@@ -69,6 +69,9 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
         if (options.InsaneCleric)
             eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Cleric, "Cleric"));
 
+        if (options.InsaneHunter)
+            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Hunter, "Hunter"));
+
         ITownOfUsRole role = player.GetTownOfUsRole();
         BaseModifier[] modifiers = player.GetModifiers<BaseModifier>().ToArray();
 
@@ -132,6 +135,9 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
     public bool InsaneClericProtects { get; set; } = true;
     [ModdedToggleOption("Insane Cleric's Cleanse Works")]
     public bool InsaneClericCleanseWorks { get; set; } = false;
+
+    [ModdedToggleOption("Hunter Can Be Insane")]
+    public bool InsaneHunter { get; set; } = false;
 
     [ModdedToggleOption("Guardian Angel Can Be Insane")]
     public bool InsaneGuardianAngel { get; set; } = false;

@@ -10,6 +10,7 @@ using MiraAPI.Modifiers;
 using TownOfUs.Buttons.Crewmate;
 using TownOfUs.Modifiers.Crewmate;
 using TownOfUs.Modifiers.Game;
+using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modules;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
@@ -137,6 +138,16 @@ public static class HunterEvents
             return;
         }
 
+        if (source.TryGetModifier<InsaneHunterStalkedModifier>(out var insaneStalk))
+        {
+            if (insaneStalk.Hunter != null 
+                && source.AmOwner
+                && insaneStalk.HunterPickedTarget != null)
+            {
+                HunterRole.RpcCatchPlayer(insaneStalk.Hunter, insaneStalk.HunterPickedTarget);
+            }
+        }
+
         if (!source.HasModifier<HunterStalkedModifier>())
         {
             return;
@@ -146,6 +157,11 @@ public static class HunterEvents
 
         if (mod?.Hunter == null || !source.AmOwner)
         {
+            return;
+        }
+
+        if (mod.Hunter.HasModifier<InsaneModifier>())
+        { 
             return;
         }
 
