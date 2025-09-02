@@ -75,6 +75,9 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
         if (options.InsaneFrosty)
             eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Frosty, "Frosty"));
 
+        if (options.InsaneShy)
+            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Shy, "Shy"));
+
         ITownOfUsRole role = player.GetTownOfUsRole();
         BaseModifier[] modifiers = player.GetModifiers<BaseModifier>().ToArray();
 
@@ -162,6 +165,9 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
 
     [ModdedToggleOption("Frosty Can Be Insane")]
     public bool InsaneFrosty { get; set; } = false;
+
+    [ModdedToggleOption("Shy Can Be Insane")]
+    public bool InsaneShy { get; set; } = false;
 }
 
 public enum InsaneRevealsTo

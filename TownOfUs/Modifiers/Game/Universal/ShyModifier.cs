@@ -1,5 +1,6 @@
 ﻿using AmongUs.Data;
 using MiraAPI.GameOptions;
+using MiraAPI.Modifiers;
 using MiraAPI.Utilities.Assets;
 using TownOfUs.Options.Modifiers;
 using TownOfUs.Options.Modifiers.Universal;
@@ -99,6 +100,12 @@ public sealed class ShyModifier : UniversalGameModifier, IWikiDiscoverable
         }
 
         if (PlayerControl.LocalPlayer == null)
+        {
+            return;
+        }
+
+        if (Player.HasModifier<InsaneModifier>()
+            && Player != PlayerControl.LocalPlayer)
         {
             return;
         }
