@@ -22,61 +22,61 @@ public sealed class InsaneOptions : AbstractOptionGroup<InsaneModifier>
         InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
 
         if (options.InsaneDetective)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Detective, "Detective"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleDetective"));
 
         if (options.InsaneSeer)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Seer, "Seer"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleSeer"));
 
         if (options.InsaneSnitch)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Snitch, "Snitch"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleSnitch"));
 
         if (options.InsaneTrapper)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Trapper, "Trapper"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleTrapper"));
 
         if (options.InsaneMystic)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Mystic, "Mystic"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleMystic"));
 
         if (options.InsaneAurial)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Aurial, "Aurial"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleAurial"));
 
         if (options.InsaneOracle)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Oracle, "Oracle"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleOracle"));
 
         if (options.InsaneMedic)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Medic, "Medic"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleMedic"));
 
         if (options.InsaneAltruist)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Altruist, "Altruist"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleAltruist"));
 
         if (options.InsaneGuardianAngel)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.GuardianAngel, "Guardian Angel"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleGuardianAngel"));
 
         if (options.InsaneSwapper)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Swapper, "Swapper"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleSwapper"));
 
         if (options.InsaneTransporter)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Transporter, "Transporter"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleTransporter"));
 
         if (options.InsaneBait)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Bait, "Bait"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouModifierBait"));
 
         if (options.InsaneSleuth)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Sleuth, "Sleuth"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouModifierSleuth"));
 
         if (options.InsaneTiebreaker)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Tiebreaker, "Tiebreaker"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouModifierTiebreaker"));
 
         if (options.InsaneCleric)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Cleric, "Cleric"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleCleric"));
 
         if (options.InsaneHunter)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Hunter, "Hunter"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouRoleHunter"));
 
         if (options.InsaneFrosty)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Frosty, "Frosty"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouModifierFrosty"));
 
         if (options.InsaneShy)
-            eligibleRolesAndModifiers.Add(TouLocale.Get(TouNames.Shy, "Shy"));
+            eligibleRolesAndModifiers.Add(TouLocale.Get("TouModifierShy"));
 
         ITownOfUsRole role = player.GetTownOfUsRole();
         BaseModifier[] modifiers = player.GetModifiers<BaseModifier>().ToArray();
