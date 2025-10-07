@@ -54,6 +54,7 @@ public sealed class Bomb : IDisposable
             yield break;
         }
 
+        List<PlayerControl> killList = new();
         foreach (var player in affected)
         {
             if (player.HasDied())
@@ -72,18 +73,24 @@ public sealed class Bomb : IDisposable
             }
 
             _bomber?.RpcCustomMurder(player, teleportMurderer: false);
+            killList.Add(player);
         }
 
         _bomber?.RpcRemoveModifier<IndirectAttackerModifier>();
 
         _obj.Destroy();
         yield return new WaitForSeconds(0.1f);
-        foreach (var player in affected)
+        foreach (var player in killList)
         {
             if (!player.HasDied() || _bomber == null)
+            {
                 continue;
-            DeathHandlerModifier.RpcUpdateDeathHandler(player, "Bombed", DeathEventHandlers.CurrentRound,
-                DeathHandlerOverride.SetTrue, $"By {_bomber.Data.PlayerName}", lockInfo: DeathHandlerOverride.SetTrue);
+            }
+
+            DeathHandlerModifier.RpcUpdateDeathHandler(player, TouLocale.Get("DiedToBomberBomb"),
+                DeathEventHandlers.CurrentRound, DeathHandlerOverride.SetTrue,
+                TouLocale.GetParsed("DiedByStringBasic").Replace("<player>", _bomber.Data.PlayerName),
+                lockInfo: DeathHandlerOverride.SetTrue);
         }
     }
 

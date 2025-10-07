@@ -37,7 +37,7 @@ public static class TeamChatPatches
         }
     }
 
-    [MethodRpc((uint)TownOfUsRpc.SendJailorChat, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.SendJailorChat)]
     public static void RpcSendJailorChat(PlayerControl player, string text)
     {
         if (PlayerControl.LocalPlayer.IsJailed())
@@ -52,7 +52,7 @@ public static class TeamChatPatches
         }
     }
 
-    [MethodRpc((uint)TownOfUsRpc.SendJaileeChat, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.SendJaileeChat)]
     public static void RpcSendJaileeChat(PlayerControl player, string text)
     {
         if (PlayerControl.LocalPlayer.Data.Role is JailorRole || (PlayerControl.LocalPlayer.HasDied() &&
@@ -64,7 +64,7 @@ public static class TeamChatPatches
         }
     }
 
-    [MethodRpc((uint)TownOfUsRpc.SendVampTeamChat, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.SendVampTeamChat)]
     public static void RpcSendVampTeamChat(PlayerControl player, string text)
     {
         if ((PlayerControl.LocalPlayer.Data.Role is VampireRole && player != PlayerControl.LocalPlayer) ||
@@ -76,7 +76,7 @@ public static class TeamChatPatches
         }
     }
 
-    [MethodRpc((uint)TownOfUsRpc.SendImpTeamChat, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.SendImpTeamChat)]
     public static void RpcSendImpTeamChat(PlayerControl player, string text)
     {
         if ((PlayerControl.LocalPlayer.IsImpostor() && player != PlayerControl.LocalPlayer) ||
@@ -110,26 +110,38 @@ public static class TeamChatPatches
             }
         }
     } */
-    [HarmonyPostfix]
+
     [HarmonyPatch(typeof(ChatBubble), nameof(ChatBubble.SetName))]
-    public static void SetNamePostfix(ChatBubble __instance, [HarmonyArgument(0)] string playerName, [HarmonyArgument(3)] Color color)
+    public static class SetNamePatch
     {
-        var player = PlayerControl.AllPlayerControls.ToArray()
-            .FirstOrDefault(x => x.Data.PlayerName == playerName);
-        if (player == null) return;
-        var genOpt = OptionGroupSingleton<GeneralOptions>.Instance;
-        if (genOpt.FFAImpostorMode && PlayerControl.LocalPlayer.IsImpostor() && !PlayerControl.LocalPlayer.HasDied() &&
-            !player.AmOwner && player.IsImpostor() && MeetingHud.Instance)
+        [HarmonyPostfix]
+        public static void SetNamePostfix(ChatBubble __instance, [HarmonyArgument(0)] string playerName,
+            [HarmonyArgument(3)] Color color)
         {
-            __instance.NameText.color = Color.white;
-        }
-        else if (color == Color.white &&
-                 (player.AmOwner || player.Data.Role is MayorRole mayor && mayor.Revealed ||
-                  PlayerControl.LocalPlayer.HasDied() && genOpt.TheDeadKnow) && PlayerControl.AllPlayerControls
-                     .ToArray()
-                     .FirstOrDefault(x => x.Data.PlayerName == playerName) && MeetingHud.Instance)
-        {
-            __instance.NameText.color = (player.GetRoleWhenAlive() is ICustomRole custom) ? custom.RoleColor : player.GetRoleWhenAlive().TeamColor;
+            var player = PlayerControl.AllPlayerControls.ToArray()
+                .FirstOrDefault(x => x.Data.PlayerName == playerName);
+            if (player == null)
+            {
+                return;
+            }
+
+            var genOpt = OptionGroupSingleton<GeneralOptions>.Instance;
+            if (genOpt.FFAImpostorMode && PlayerControl.LocalPlayer.IsImpostor() &&
+                !PlayerControl.LocalPlayer.HasDied() &&
+                !player.AmOwner && player.IsImpostor() && MeetingHud.Instance)
+            {
+                __instance.NameText.color = Color.white;
+            }
+            else if (color == Color.white &&
+                     (player.AmOwner || player.Data.Role is MayorRole mayor && mayor.Revealed ||
+                      PlayerControl.LocalPlayer.HasDied() && genOpt.TheDeadKnow) && PlayerControl.AllPlayerControls
+                         .ToArray()
+                         .FirstOrDefault(x => x.Data.PlayerName == playerName) && MeetingHud.Instance)
+            {
+                __instance.NameText.color = (player.GetRoleWhenAlive() is ICustomRole custom)
+                    ? custom.RoleColor
+                    : player.GetRoleWhenAlive().TeamColor;
+            }
         }
     }
 
@@ -147,6 +159,7 @@ public static class TeamChatPatches
             {
                 return;
             }
+
             try
             {
                 if (__instance.IsOpenOrOpening)
@@ -178,12 +191,18 @@ public static class TeamChatPatches
 
                     if (TeamChatActive)
                     {
-                        if (PlayerControl.LocalPlayer.TryGetModifier<JailedModifier>(out var jailMod) && !jailMod.HasOpenedQuickChat)
+                        if (PlayerControl.LocalPlayer.TryGetModifier<JailedModifier>(out var jailMod) &&
+                            !jailMod.HasOpenedQuickChat)
                         {
-                            if (!__instance.quickChatMenu.IsOpen) __instance.OpenQuickChat();
+                            if (!__instance.quickChatMenu.IsOpen)
+                            {
+                                __instance.OpenQuickChat();
+                            }
+
                             __instance.quickChatMenu.Close();
                             jailMod.HasOpenedQuickChat = true;
                         }
+
                         var ogChat = HudManager.Instance.Chat.chatButton;
                         ogChat.transform.Find("Inactive").gameObject.SetActive(true);
                         ogChat.transform.Find("Active").gameObject.SetActive(false);

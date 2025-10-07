@@ -7,7 +7,7 @@ namespace TownOfUs.Options.Roles.Crewmate;
 
 public sealed class JailorOptions : AbstractOptionGroup<JailorRole>
 {
-    public override string GroupName => TouLocale.Get(TouNames.Jailor, "Jailor");
+    public override string GroupName => TouLocale.Get("TouRoleJailor", "Jailor");
 
     [ModdedNumberOption("Jail Cooldown", 1f, 30f, 1f, MiraNumberSuffixes.Seconds)]
     public float JailCooldown { get; set; } = 20f;
@@ -19,5 +19,5 @@ public sealed class JailorOptions : AbstractOptionGroup<JailorRole>
     public bool JailInARow { get; set; } = false;
 
     [ModdedToggleOption("Jailee Can Use Public Chat")]
-    public bool JaileePublicChat { get; set; } = true;
+    public bool JaileePublicChat { get; set; } = false;
 }

@@ -8,7 +8,7 @@ namespace TownOfUs.Options.Roles.Neutral;
 
 public sealed class InquisitorOptions : AbstractOptionGroup<InquisitorRole>
 {
-    public override string GroupName => TouLocale.Get(TouNames.Inquisitor, "Inquisitor");
+    public override string GroupName => TouLocale.Get("TouRoleInquisitor", "Inquisitor");
 
     [ModdedNumberOption("Vanquish Cooldown", 10f, 60f, 2.5f, MiraNumberSuffixes.Seconds)]
     public float VanquishCooldown { get; set; } = 25f;
@@ -32,8 +32,5 @@ public sealed class InquisitorOptions : AbstractOptionGroup<InquisitorRole>
         };
 
     public ModdedNumberOption AmountOfHeretics { get; set; } =
-        new("Amount of Heretics Needed", 3f, 3f, 5f, 1f, MiraNumberSuffixes.None, "0")
-        {
-            Visible = () => !OptionGroupSingleton<InquisitorOptions>.Instance.CantInquire
-        };
+        new("Amount of Heretics Needed", 3f, 3f, 5f, 1f, MiraNumberSuffixes.None, "0");
 }

@@ -1,20 +1,20 @@
 ﻿using MiraAPI.GameOptions;
 using MiraAPI.Networking;
 using MiraAPI.Utilities.Assets;
-using TownOfUs.Options;
-using TownOfUs.Options.Modifiers.Alliance;
 using TownOfUs.Options.Roles.Impostor;
 using TownOfUs.Roles.Impostor;
 using TownOfUs.Utilities;
-using TownOfUs.Utilities.Appearances;
 using UnityEngine;
 
 namespace TownOfUs.Buttons.Impostor;
 
 public sealed class WarlockKillButton : TownOfUsRoleButton<WarlockRole, PlayerControl>, IDiseaseableButton, IKillButton
 {
-    public override string Name => "Kill";
-    public override string Keybind => Keybinds.PrimaryAction;
+    private string _killName = "Kill";
+    private string _burstKill = "Burst Kill";
+    private string _burstActive = "Burst Active";
+    public override string Name => _killName;
+    public override BaseKeybind Keybind => Keybinds.PrimaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Impostor;
     public override float Cooldown => PlayerControl.LocalPlayer.GetKillCooldown() + MapCooldown;
     public override LoadableAsset<Sprite> Sprite => TouAssets.KillSprite;
@@ -26,6 +26,20 @@ public sealed class WarlockKillButton : TownOfUsRoleButton<WarlockRole, PlayerCo
     public void SetDiseasedTimer(float multiplier)
     {
         SetTimer(Cooldown * multiplier);
+    }
+
+    public override void CreateButton(Transform parent)
+    {
+        base.CreateButton(parent);
+        if (KeybindIcon != null)
+        {
+            KeybindIcon.transform.localPosition = new Vector3(0.4f, 0.45f, -9f);
+        }
+
+        _killName = TranslationController.Instance.GetStringWithDefault(StringNames.KillLabel, "Kill");
+        _burstKill = TouLocale.Get("TouRoleWarlockBurstKill", "Burst Kill");
+        _burstActive = TouLocale.Get("TouRoleWarlockBurstActive", "Burst Active");
+        OverrideName(_killName);
     }
 
     protected override void FixedUpdate(PlayerControl playerControl)
@@ -61,15 +75,15 @@ public sealed class WarlockKillButton : TownOfUsRoleButton<WarlockRole, PlayerCo
 
         if (BurstActive)
         {
-            OverrideName("Burst Active");
+            OverrideName(_burstActive);
         }
         else if (Charge >= 100 && Timer <= 0)
         {
-            OverrideName("Burst Kill");
+            OverrideName(_burstKill);
         }
         else
         {
-            OverrideName("Kill");
+            OverrideName(_killName);
         }
 
         base.FixedUpdate(playerControl);
@@ -125,18 +139,6 @@ public sealed class WarlockKillButton : TownOfUsRoleButton<WarlockRole, PlayerCo
 
     public override PlayerControl? GetTarget()
     {
-        var genOpt = OptionGroupSingleton<GeneralOptions>.Instance;
-        var closePlayer = PlayerControl.LocalPlayer.GetClosestLivingPlayer(true, Distance);
-
-        var includePostors = genOpt.FFAImpostorMode ||
-                             (PlayerControl.LocalPlayer.IsLover() &&
-                              OptionGroupSingleton<LoversOptions>.Instance.LoverKillTeammates) ||
-                             (genOpt.KillDuringCamoComms &&
-                              closePlayer?.GetAppearanceType() == TownOfUsAppearances.Camouflage);
-        if (!OptionGroupSingleton<LoversOptions>.Instance.LoversKillEachOther && PlayerControl.LocalPlayer.IsLover())
-        {
-            return PlayerControl.LocalPlayer.GetClosestLivingPlayer(includePostors, Distance, false, x => !x.IsLover());
-        }
-        return PlayerControl.LocalPlayer.GetClosestLivingPlayer(includePostors, Distance);
+        return MiscUtils.GetImpostorTarget(Distance);
     }
 }
