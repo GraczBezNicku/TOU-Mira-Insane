@@ -5,6 +5,7 @@ using MiraAPI.Modifiers;
 using MiraAPI.Roles;
 using Reactor.Utilities.Extensions;
 using TownOfUs.Modifiers.Game.Universal;
+using MiraAPI.Utilities;
 using TownOfUs.Modifiers.Impostor;
 using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Options.Roles.Crewmate;
@@ -122,7 +123,7 @@ public sealed class BodyReport
         }
 
         var prefix = "a";
-        if (role.NiceName.StartsWithVowel())
+        if (role.GetRoleName().StartsWithVowel())
         {
             prefix = "an";
         }
@@ -130,7 +131,7 @@ public sealed class BodyReport
         if (br.KillAge < OptionGroupSingleton<DetectiveOptions>.Instance.DetectiveRoleDuration * 1000)
         {
             return
-                $"Body Report: The killer appears to be {prefix} {role.NiceName}! (Killed {Math.Round(br.KillAge / 1000)}s ago)";
+                $"Body Report: The killer appears to be {prefix} {role.GetRoleName()}! (Killed {Math.Round(br.KillAge / 1000)}s ago)";
         }
 
         if (br.Killer.IsNeutral())
@@ -165,7 +166,7 @@ public static class GameHistory
 
     public static void RegisterRole(PlayerControl player, RoleBehaviour role, bool clean = false)
     {
-        //Logger<TownOfUsPlugin>.Message($"RegisterRole - player: '{player.Data.PlayerName}', role: '{role.NiceName}'");
+        //Logger<TownOfUsPlugin>.Message($"RegisterRole - player: '{player.Data.PlayerName}', role: '{role.GetRoleName()}'");
 
         if (clean)
         {

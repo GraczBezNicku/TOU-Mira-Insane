@@ -68,7 +68,7 @@ public static class LogicGameFlowPatches
     [HarmonyPrefix]
     private static bool RecomputeTasksPatch(GameData __instance)
     {
-        if (__instance == null)
+        if (__instance == null || GameOptionsManager.Instance == null)
         {
             return false;
         }
@@ -78,8 +78,11 @@ public static class LogicGameFlowPatches
         for (var i = 0; i < __instance.AllPlayers.Count; i++)
         {
             var playerInfo = __instance.AllPlayers.ToArray()[i];
-            if (playerInfo.Disconnected || !playerInfo.Object || playerInfo.Tasks == null || playerInfo.Object == null) continue;
-            
+            if (playerInfo.Disconnected || !playerInfo.Object || playerInfo.Tasks == null || playerInfo.Object == null)
+            {
+                continue;
+            }
+
             if ((GameOptionsManager.Instance.currentNormalGameOptions.GhostsDoTasks || !playerInfo.IsDead) &&
                 !playerInfo._object.IsImpostor() &&
                 !(
@@ -125,7 +128,7 @@ public static class LogicGameFlowPatches
         {
             return false;
         }
-        
+
         // Prevents game end on exile screen
         if (ExileController.Instance)
         {

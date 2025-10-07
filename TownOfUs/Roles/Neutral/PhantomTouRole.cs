@@ -31,15 +31,13 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
 
     public bool CanBeClicked
     {
-        get
-        {
-            return TaskStage is GhostTaskStage.Clickable or GhostTaskStage.Revealed;
-        }
+        get { return TaskStage is GhostTaskStage.Clickable or GhostTaskStage.Revealed; }
         set
         {
             // Left Alone
         }
     }
+
     public GhostTaskStage TaskStage { get; private set; } = GhostTaskStage.Unclickable;
     public bool GhostActive => Setup && !Caught;
 
@@ -52,7 +50,16 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
     {
         Setup = true;
 
-        if (TownOfUsPlugin.IsDevBuild) Logger<TownOfUsPlugin>.Error($"Setup PhantomTouRole '{Player.Data.PlayerName}'");
+        if (HudManagerPatches.CamouflageCommsEnabled)
+        {
+            Player.SetCamouflage(false);
+        }
+
+        if (TownOfUsPlugin.IsDevBuild)
+        {
+            Logger<TownOfUsPlugin>.Error($"Setup PhantomTouRole '{Player.Data.PlayerName}'");
+        }
+
         Player.gameObject.layer = LayerMask.NameToLayer("Players");
 
         Player.gameObject.GetComponent<PassiveButton>().OnClick = new Button.ButtonClickedEvent();
@@ -71,7 +78,7 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
         }
     }
 
-    public void FadeUpdate(HudManager instance)
+    public void FadeUpdate()
     {
         if (!Caught && Setup)
         {
@@ -93,9 +100,23 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
         }
     }
 
+    public void FixedUpdate()
+    {
+        if (Player == null || Player.Data.Role is not PhantomTouRole || MeetingHud.Instance)
+        {
+            return;
+        }
+
+        FadeUpdate();
+    }
+
     public void Clicked()
     {
-        if (TownOfUsPlugin.IsDevBuild) Logger<TownOfUsPlugin>.Message($"PhantomTouRole.Clicked");
+        if (TownOfUsPlugin.IsDevBuild)
+        {
+            Logger<TownOfUsPlugin>.Message($"PhantomTouRole.Clicked");
+        }
+
         Caught = true;
         Player.Exiled();
 
@@ -105,9 +126,18 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
         }
     }
 
-    public override string RoleName => TouLocale.Get(TouNames.Phantom, "Phantom");
-    public override string RoleDescription => string.Empty;
-    public override string RoleLongDescription => "Complete all your tasks without being caught!";
+    public string LocaleKey => "Phantom";
+    public override string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public override string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public override string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
+
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
+
     public override Color RoleColor => TownOfUsColors.Phantom;
     public override RoleAlignment RoleAlignment => RoleAlignment.NeutralEvil;
 
@@ -132,13 +162,6 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
         return ITownOfUsRole.SetNewTabText(this);
     }
 
-    public string GetAdvancedDescription()
-    {
-        return
-            $"The {RoleName} is a Neutral Ghost role that wins the game by finishing their tasks before a alive player has clicked on them." +
-            MiscUtils.AppendOptionsText(GetType());
-    }
-
     public override void UseAbility()
     {
         if (GhostActive)
@@ -155,6 +178,11 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
         if (TutorialManager.InstanceExists)
         {
             Setup = true;
+
+            if (HudManagerPatches.CamouflageCommsEnabled)
+            {
+                Player.SetCamouflage(false);
+            }
 
             Coroutines.Start(SetTutorialCollider(Player));
 
@@ -228,25 +256,35 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
             return;
         }
 
-        var completedTasks = Player.myTasks.ToArray().Count(t => t.IsComplete);
-        var tasksRemaining = Player.myTasks.Count - completedTasks;
+        var realTasks = Player.myTasks.ToArray()
+            .Where(x => !PlayerTask.TaskIsEmergency(x) && !x.TryCast<ImportantTextTask>()).ToList();
 
-        if (TaskStage is GhostTaskStage.Unclickable && tasksRemaining ==
+        var completedTasks = realTasks.Count(t => t.IsComplete);
+        var tasksRemaining = realTasks.Count - completedTasks;
+
+        if (TaskStage is GhostTaskStage.Unclickable && tasksRemaining <=
             (int)OptionGroupSingleton<PhantomOptions>.Instance.NumTasksLeftBeforeClickable)
         {
             TaskStage = GhostTaskStage.Clickable;
             if (Player.AmOwner)
             {
                 var notif1 = Helpers.CreateAndShowNotification(
-                    $"<b>{TownOfUsColors.Phantom.ToTextColor()}You are now clickable by players!</b></color>", Color.white,
+                    $"<b>{TownOfUsColors.Phantom.ToTextColor()}You are now clickable by players!</b></color>",
+                    Color.white,
                     new Vector3(0f, 1f, -20f), spr: TouRoleIcons.Phantom.LoadAsset());
-                notif1.Text.SetOutlineThickness(0.35f);
+                notif1.AdjustNotification();
             }
         }
 
-        if (completedTasks == Player.myTasks.Count)
+        if (completedTasks == realTasks.Count)
         {
             TaskStage = GhostTaskStage.CompletedTasks;
+        }
+
+        if (TownOfUsPlugin.IsDevBuild)
+        {
+            Logger<TownOfUsPlugin>.Error(
+                $"Phantom Stage for '{Player.Data.PlayerName}': {TaskStage.ToDisplayString()} - ({completedTasks} / {realTasks.Count})");
         }
 
         if (OptionGroupSingleton<PhantomOptions>.Instance.PhantomWin is not PhantomWinOptions.Spooks ||
@@ -262,7 +300,7 @@ public sealed class PhantomTouRole(IntPtr cppPtr)
 
         var allVictims = PlayerControl.AllPlayerControls.ToArray()
             .Where(x => !x.AmOwner);
-                
+
         if (!allVictims.Any())
         {
             return;

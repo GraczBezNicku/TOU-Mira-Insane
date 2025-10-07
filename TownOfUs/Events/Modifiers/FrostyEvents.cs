@@ -6,6 +6,7 @@ using MiraAPI.Utilities;
 using TownOfUs.Modifiers.Game.Crewmate;
 using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Modifiers.Crewmate;
+using TownOfUs.Utilities;
 using UnityEngine;
 
 namespace TownOfUs.Events.Modifiers;
@@ -37,8 +38,7 @@ public static class FrostyEvents
                     Color.white, spr: TouModifierIcons.Frosty.LoadAsset());
             }
 
-            notif1.Text.SetOutlineThickness(0.35f);
-            notif1.transform.localPosition = new Vector3(0f, 1f, -20f);
+            notif1.AdjustNotification();
         }
 
         @event.Source.AddModifier<FrozenModifier>(@event.Target);
