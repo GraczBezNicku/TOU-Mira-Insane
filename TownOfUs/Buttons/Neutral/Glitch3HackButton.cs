@@ -14,8 +14,8 @@ namespace TownOfUs.Buttons.Neutral;
 
 public sealed class GlitchHackButton : TownOfUsRoleButton<GlitchRole, PlayerControl>, IAftermathablePlayerButton
 {
-    public override string Name => "Hack";
-    public override string Keybind => "tou.ActionCustom";
+    public override string Name => TouLocale.Get("TouRoleGlitchHack", "Hack");
+    public override BaseKeybind Keybind => Keybinds.TertiaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Glitch;
     public override float Cooldown => OptionGroupSingleton<GlitchOptions>.Instance.HackCooldown + MapCooldown;
     public override LoadableAsset<Sprite> Sprite => TouNeutAssets.HackSprite;

@@ -2,6 +2,7 @@
 
 public enum TownOfUsRpc : uint
 {
+    GhostRoleMurder,
     RemoveSpawns,
 
     UpdateDeathHandler,
@@ -72,7 +73,6 @@ public enum TownOfUsRpc : uint
     RetrainImpostor,
     AmbushPlayer,
     RetrainConfirm,
-    SetInsane,
-    ReportAsAnotherPlayer,
-    RevealInsane
+    SelectSpectator,
+    RemoveSpectator
 }

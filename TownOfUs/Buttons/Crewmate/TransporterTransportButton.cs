@@ -1,10 +1,7 @@
 ﻿using MiraAPI.GameOptions;
 using MiraAPI.Hud;
-using MiraAPI.Modifiers;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
-using Reactor.Utilities.Extensions;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Utilities;
@@ -14,8 +11,8 @@ namespace TownOfUs.Buttons.Crewmate;
 
 public sealed class TransporterTransportButton : TownOfUsRoleButton<TransporterRole>
 {
-    public override string Name => "Transport";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleTransporterTransport", "Transport");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Transporter;
 
     public override float Cooldown =>
@@ -83,22 +80,7 @@ public sealed class TransporterTransportButton : TownOfUsRoleButton<TransporterR
                         {
                             return;
                         }
-
-                        if (Role.Player.HasModifier<InsaneModifier>())
-                        {
-                            byte newPly1 = plr == PlayerControl.LocalPlayer ? plr.PlayerId : PlayerControl.AllPlayerControls.ToArray().Where(x =>
-                                (x.moveable || x.inVent)
-                                && (!x.HasDied() || Helpers.GetBodyById(x.PlayerId))).Random().PlayerId;
-
-                            byte newPly2 = plr == PlayerControl.LocalPlayer && newPly1 != plr.PlayerId ? plr.PlayerId : PlayerControl.AllPlayerControls.ToArray().Where(x =>
-                                (x.moveable || x.inVent)
-                                && (!x.HasDied() || Helpers.GetBodyById(x.PlayerId))
-                                && x.PlayerId != newPly1).Random().PlayerId;
-
-                            TransporterRole.RpcTransport(PlayerControl.LocalPlayer, newPly1, newPly2);
-                        }
-                        else
-                            TransporterRole.RpcTransport(PlayerControl.LocalPlayer, plr.PlayerId, plr2.PlayerId);
+                        TransporterRole.RpcTransport(PlayerControl.LocalPlayer, plr.PlayerId, plr2.PlayerId);
                     }
                 );
                 foreach (var panel in player2Menu.potentialVictims)

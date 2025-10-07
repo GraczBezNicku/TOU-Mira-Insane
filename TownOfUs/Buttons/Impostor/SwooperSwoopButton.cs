@@ -13,8 +13,8 @@ namespace TownOfUs.Buttons.Impostor;
 public sealed class SwooperSwoopButton : TownOfUsRoleButton<SwooperRole>, IAftermathableButton
 {
     public override Color TextOutlineColor => TownOfUsColors.Impostor;
-    public override string Name => "Swoop";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleSwooperSwoop", "Swoop");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override float Cooldown => OptionGroupSingleton<SwooperOptions>.Instance.SwoopCooldown + MapCooldown;
     public override float EffectDuration => OptionGroupSingleton<SwooperOptions>.Instance.SwoopDuration;
     public override int MaxUses => (int)OptionGroupSingleton<SwooperOptions>.Instance.MaxSwoops;
@@ -47,6 +47,11 @@ public sealed class SwooperSwoopButton : TownOfUsRoleButton<SwooperRole>, IAfter
 
     public override bool CanUse()
     {
+        if (HudManager.Instance.Chat.IsOpenOrOpening || MeetingHud.Instance)
+        {
+            return false;
+        }
+
         if (PlayerControl.LocalPlayer.HasModifier<GlitchHackedModifier>() || PlayerControl.LocalPlayer.GetModifiers<DisabledModifier>().Any(x => !x.CanUseAbilities))
         {
             return false;

@@ -1,24 +1,21 @@
+using System.Collections;
+using System.Text;
 using Il2CppInterop.Runtime.Attributes;
 using MiraAPI.Events;
 using MiraAPI.GameOptions;
 using MiraAPI.Hud;
 using MiraAPI.Modifiers;
 using MiraAPI.Modifiers.Types;
-using MiraAPI.Networking;
 using MiraAPI.Patches.Stubs;
 using MiraAPI.Roles;
 using Reactor.Networking.Attributes;
 using Reactor.Utilities;
-using System.Collections;
-using System.Text;
 using TownOfUs.Buttons.Crewmate;
 using TownOfUs.Events.TouEvents;
 using TownOfUs.Modifiers.Crewmate;
 using TownOfUs.Modifiers.Game.Alliance;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modules;
 using TownOfUs.Modules.Anims;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Utilities;
 using UnityEngine;
@@ -29,9 +26,31 @@ public sealed class AltruistRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfU
 {
     public override bool IsAffectedByComms => false;
     public DoomableType DoomHintType => DoomableType.Death;
-    public string RoleName => TouLocale.Get(TouNames.Altruist, "Altruist");
-    public string RoleDescription => "Revive Dead Crewmates";
-    public string RoleLongDescription => "Revive dead crewmates in groups";
+    public string LocaleKey => "Altruist";
+    public string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
+    
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
+
+    [HideFromIl2Cpp]
+    public List<CustomButtonWikiDescription> Abilities
+    {
+        get
+        {
+            return new List<CustomButtonWikiDescription>
+            {
+        new(TouLocale.GetParsed($"TouRole{LocaleKey}Revive", "Revive"),
+            TouLocale.GetParsed($"TouRole{LocaleKey}ReviveWikiDescription"),
+            TouCrewAssets.ReviveSprite)
+            };
+        }
+    }
     public Color RoleColor => TownOfUsColors.Altruist;
     public ModdedRoleTeams Team => ModdedRoleTeams.Crewmate;
     public RoleAlignment RoleAlignment => RoleAlignment.CrewmateProtective;
@@ -47,22 +66,6 @@ public sealed class AltruistRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfU
     {
         return ITownOfUsRole.SetNewTabText(this);
     }
-
-    public string GetAdvancedDescription()
-    {
-        return
-            $"The {RoleName} is a Crewmate Protective role can revive dead players in groups. However, their location and the revived players' locations will be revealed to all Impostors." +
-            MiscUtils.AppendOptionsText(GetType());
-    }
-
-    [HideFromIl2Cpp]
-    public List<CustomButtonWikiDescription> Abilities { get; } =
-    [
-        new("Revive",
-            "Revive a group of dead bodies near you. You will be frozen during the revival and you will be unable to move until the revival is complete." +
-            " Impostors will also have an arrow pointing towards you during the revival, so be cautious.",
-            TouCrewAssets.ReviveSprite)
-    ];
 
     public override void OnMeetingStart()
     {
@@ -124,25 +127,6 @@ public sealed class AltruistRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfU
         Player.moveable = false;
         Player.NetTransform.Halt();
 
-        if (PlayerControl.LocalPlayer == Player && Player.HasModifier<InsaneModifier>())
-        {
-            InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
-
-            switch (options.InsaneAltruistAbility)
-            {
-                case InsaneAltruistAction.Report:
-                    Player.CmdReportDeadBody(dead.Data);
-                    break;
-                case InsaneAltruistAction.Dies:
-                    Player.RpcCustomMurder(Player, true, false, false, false, true, true);
-                    break;
-                case InsaneAltruistAction.DiesAndReport:
-                    InsaneModifier.ForceAnotherPlayerToReport(Player, Player, dead.Data, false);
-                    Player.RpcCustomMurder(Player, true, false, false, false, true, true);
-                    break;
-            }
-        }
-
         var body = FindObjectsOfType<DeadBody>()
             .FirstOrDefault(b => b.ParentId == dead.PlayerId);
         var position = new Vector2(Player.transform.localPosition.x, Player.transform.localPosition.y);
@@ -156,9 +140,9 @@ public sealed class AltruistRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfU
             }
         }
 
-        yield return new WaitForSeconds(OptionGroupSingleton<AltruistOptions>.Instance.ReviveDuration);
+        yield return new WaitForSeconds(OptionGroupSingleton<AltruistOptions>.Instance.ReviveDuration.Value);
 
-        if (!MeetingHud.Instance)
+        if (!MeetingHud.Instance && !Player.HasDied())
         {
             GameHistory.ClearMurder(dead);
 
@@ -234,7 +218,7 @@ public sealed class AltruistRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfU
         Player.moveable = true;
     }
 
-    [MethodRpc((uint)TownOfUsRpc.AltruistRevive, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.AltruistRevive)]
     public static void RpcRevive(PlayerControl alt, PlayerControl target)
     {
         if (alt.Data.Role is not AltruistRole role)

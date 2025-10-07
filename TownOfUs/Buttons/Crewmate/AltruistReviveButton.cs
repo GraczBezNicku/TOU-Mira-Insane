@@ -13,11 +13,11 @@ namespace TownOfUs.Buttons.Crewmate;
 
 public sealed class AltruistReviveButton : TownOfUsRoleButton<AltruistRole>
 {
-    public override string Name => "Revive";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleAltruistRevive", "Revive");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Altruist;
     public override float Cooldown => 0.001f + MapCooldown;
-    public override float EffectDuration => OptionGroupSingleton<AltruistOptions>.Instance.ReviveDuration;
+    public override float EffectDuration => OptionGroupSingleton<AltruistOptions>.Instance.ReviveDuration.Value;
     public override int MaxUses => (int)OptionGroupSingleton<AltruistOptions>.Instance.MaxRevives;
     public override LoadableAsset<Sprite> Sprite => TouCrewAssets.ReviveSprite;
 
@@ -39,7 +39,7 @@ public sealed class AltruistReviveButton : TownOfUsRoleButton<AltruistRole>
 
         var bodiesInRange = Helpers.GetNearestDeadBodies(
             PlayerControl.LocalPlayer.transform.position,
-            OptionGroupSingleton<AltruistOptions>.Instance.ReviveRange * ShipStatus.Instance.MaxLightRadius,
+            OptionGroupSingleton<AltruistOptions>.Instance.ReviveRange.Value * ShipStatus.Instance.MaxLightRadius,
             Helpers.CreateFilter(Constants.NotShipMask));
 
         return base.CanUse() && bodiesInRange.Count > 0;
@@ -49,7 +49,7 @@ public sealed class AltruistReviveButton : TownOfUsRoleButton<AltruistRole>
     {
         var bodiesInRange = Helpers.GetNearestDeadBodies(
             PlayerControl.LocalPlayer.transform.position,
-            OptionGroupSingleton<AltruistOptions>.Instance.ReviveRange * ShipStatus.Instance.MaxLightRadius,
+            OptionGroupSingleton<AltruistOptions>.Instance.ReviveRange.Value * ShipStatus.Instance.MaxLightRadius,
             Helpers.CreateFilter(Constants.NotShipMask));
 
         var playersToRevive = bodiesInRange.Select(x => x.ParentId).ToList();
@@ -59,9 +59,6 @@ public sealed class AltruistReviveButton : TownOfUsRoleButton<AltruistRole>
             var player = MiscUtils.PlayerById(playerId);
             if (player != null)
             {
-                if (PlayerControl.LocalPlayer.Data.IsDead)
-                    break;
-
                 if (player.IsLover() && OptionGroupSingleton<LoversOptions>.Instance.BothLoversDie)
                 {
                     var other = player.GetModifier<LoverModifier>()!.GetOtherLover;
@@ -74,12 +71,12 @@ public sealed class AltruistReviveButton : TownOfUsRoleButton<AltruistRole>
                 AltruistRole.RpcRevive(PlayerControl.LocalPlayer, player);
             }
         }
-        OverrideName("Reviving");
+        OverrideName(TouLocale.Get("TouRoleAltruistReviving", "Reviving"));
     }
 
     public override void OnEffectEnd()
     {
         RevivedInRound = true;
-        OverrideName("Revive");
+        OverrideName(TouLocale.Get("TouRoleAltruistRevive", "Revive"));
     }
 }

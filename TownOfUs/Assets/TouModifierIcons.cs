@@ -5,8 +5,6 @@ namespace TownOfUs.Assets;
 
 public static class TouModifierIcons
 {
-    private static readonly string iconPath = "TownOfUs.Resources.ModifierIcons";
-
     public static LoadableAsset<Sprite> Aftermath { get; } = new LoadableBundleAsset<Sprite>("Aftermath", TouAssets.MainBundle);
     public static LoadableAsset<Sprite> Bait { get; } = new LoadableBundleAsset<Sprite>("Bait", TouAssets.MainBundle);
     public static LoadableAsset<Sprite> ButtonBarry { get; } = new LoadableBundleAsset<Sprite>("ButtonBarry", TouAssets.MainBundle);
@@ -40,8 +38,6 @@ public static class TouModifierIcons
     public static LoadableAsset<Sprite> SixthSense { get; } = new LoadableBundleAsset<Sprite>("SixthSense", TouAssets.MainBundle);
     public static LoadableAsset<Sprite> Sleuth { get; } = new LoadableBundleAsset<Sprite>("Sleuth", TouAssets.MainBundle);
     public static LoadableAsset<Sprite> Tiebreaker { get; } = new LoadableBundleAsset<Sprite>("Tiebreaker", TouAssets.MainBundle);
-
-    public static LoadableAsset<Sprite> Insane { get; } = new LoadableResourceAsset($"{iconPath}.Insane.png");
 
     public static LoadableAsset<Sprite> FirstRoundShield { get; } =
         new LoadableBundleAsset<Sprite>("FirstRoundShield", TouAssets.MainBundle);

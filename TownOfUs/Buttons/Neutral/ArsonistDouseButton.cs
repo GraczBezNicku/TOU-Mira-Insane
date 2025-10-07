@@ -14,8 +14,8 @@ namespace TownOfUs.Buttons.Neutral;
 
 public sealed class ArsonistDouseButton : TownOfUsRoleButton<ArsonistRole, PlayerControl>
 {
-    public override string Name => "Douse";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleArsonistDouse", "Douse");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Arsonist;
     public override float Cooldown => OptionGroupSingleton<ArsonistOptions>.Instance.DouseCooldown + MapCooldown;
     public override LoadableAsset<Sprite> Sprite => TouNeutAssets.DouseButtonSprite;

@@ -11,10 +11,8 @@ using TownOfUs.Buttons;
 using TownOfUs.Buttons.Crewmate;
 using TownOfUs.Modifiers;
 using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modules;
 using TownOfUs.Options;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Utilities;
@@ -169,17 +167,6 @@ public static class MedicEvents
             (source.TryGetModifier<IndirectAttackerModifier>(out var indirect) && indirect.IgnoreShield))
         {
             return false;
-        }
-
-        if (target.HasModifier<MedicShieldModifier>())
-        {
-            if (target.GetModifier<MedicShieldModifier>().Medic.HasModifier<InsaneModifier>())
-            {
-                InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
-
-                if (!options.InsaneMedicProtects)
-                    return false;
-            }
         }
 
         @event.Cancel();

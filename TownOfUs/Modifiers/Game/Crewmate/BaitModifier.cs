@@ -1,10 +1,7 @@
 ﻿using System.Collections;
 using MiraAPI.GameOptions;
-using MiraAPI.Modifiers;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
-using Reactor.Utilities.Extensions;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Modifiers;
 using TownOfUs.Options.Modifiers.Crewmate;
 using TownOfUs.Utilities;
@@ -15,8 +12,17 @@ namespace TownOfUs.Modifiers.Game.Crewmate;
 
 public sealed class BaitModifier : TouGameModifier, IWikiDiscoverable
 {
-    public override string ModifierName => TouLocale.Get(TouNames.Bait, "Bait");
-    public override string IntroInfo => "You will also force your killer to report your body.";
+    public override string LocaleKey => "Bait";
+    public override string ModifierName => TouLocale.Get($"TouModifier{LocaleKey}");
+    public override string IntroInfo => TouLocale.GetParsed($"TouModifier{LocaleKey}IntroBlurb");
+    public override string GetDescription()
+    {
+        return TouLocale.GetParsed($"TouModifier{LocaleKey}TabDescription");
+    }
+    public string GetAdvancedDescription()
+    {
+        return TouLocale.GetParsed($"TouModifier{LocaleKey}WikiDescription") + MiscUtils.AppendOptionsText(GetType());
+    }
     public override LoadableAsset<Sprite>? ModifierIcon => TouModifierIcons.Bait;
     public override Color FreeplayFileColor => new Color32(140, 255, 255, 255);
 
@@ -25,19 +31,7 @@ public sealed class BaitModifier : TouGameModifier, IWikiDiscoverable
     private static float MinDelay => OptionGroupSingleton<BaitOptions>.Instance.MinDelay;
     private static float MaxDelay => OptionGroupSingleton<BaitOptions>.Instance.MaxDelay;
 
-    public string GetAdvancedDescription()
-    {
-        return
-            "After you die, your killer will self-report, reporting your body."
-            + MiscUtils.AppendOptionsText(GetType());
-    }
-
     public List<CustomButtonWikiDescription> Abilities { get; } = [];
-
-    public override string GetDescription()
-    {
-        return "Force your killer to self-report.";
-    }
 
     public override int GetAssignmentChance()
     {
@@ -65,15 +59,6 @@ public sealed class BaitModifier : TouGameModifier, IWikiDiscoverable
 
         if (killer.AmOwner)
         {
-            if (target.HasModifier<InsaneModifier>())
-            {
-                PlayerControl newKiller = Helpers.GetAlivePlayers().Where(x => x != killer).Random();
-
-                InsaneModifier.ForceAnotherPlayerToReport(killer, newKiller, target.Data, true);
-
-                yield break;
-            }
-
             killer.CmdReportDeadBody(target.Data);
 
             var notif1 = Helpers.CreateAndShowNotification(

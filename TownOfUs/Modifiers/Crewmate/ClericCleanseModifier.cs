@@ -1,13 +1,10 @@
-﻿using MiraAPI.Events;
-using MiraAPI.GameOptions;
+﻿using System.Text;
+using MiraAPI.Events;
 using MiraAPI.Modifiers;
 using Reactor.Utilities.Extensions;
-using System.Text;
 using TownOfUs.Events.TouEvents;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modifiers.Impostor;
 using TownOfUs.Modifiers.Neutral;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Utilities;
 
 namespace TownOfUs.Modifiers.Crewmate;
@@ -39,14 +36,6 @@ public sealed class ClericCleanseModifier(PlayerControl cleric) : BaseModifier
         MiraEventManager.InvokeEvent(touAbilityEvent);
 
         Effects = FindNegativeEffects(Player);
-
-        if (Cleric != null 
-            && Cleric.TryGetModifier<InsaneModifier>(out var insane)
-            && PlayerControl.LocalPlayer == Cleric)
-        {
-            if (insane.PlayerIdToFakeCleansedEffects.TryGetValue(Player.PlayerId, out List<EffectType>? value))
-                Effects = new(value);
-        }
 
         // Logger<TownOfUsPlugin>.Error($"ClericCleanseModifier.OnActivate");
     }
@@ -93,12 +82,6 @@ public sealed class ClericCleanseModifier(PlayerControl cleric) : BaseModifier
 
     private void CleansePlayer()
     {
-        InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
-        if (Cleric.HasModifier<InsaneModifier>() && !options.InsaneClericCleanseWorks)
-        {
-            return;
-        }
-
         // Logger<TownOfUsPlugin>.Error($"ClericCleanseModifier.CleansePlayer");
         if (Effects.Contains(EffectType.Douse))
         {

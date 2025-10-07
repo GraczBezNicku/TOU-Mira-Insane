@@ -1,15 +1,11 @@
 using System.Text;
-using Epic.OnlineServices;
 using Il2CppInterop.Runtime.Attributes;
 using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.Patches.Stubs;
 using MiraAPI.Roles;
-using MiraAPI.Utilities;
 using Reactor.Networking.Attributes;
-using Reactor.Utilities.Extensions;
 using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modules;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Utilities;
@@ -21,12 +17,36 @@ public sealed class SwapperRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITouCrewR
 {
     private MeetingMenu meetingMenu;
 
+    [HideFromIl2Cpp]
     public PlayerVoteArea? Swap1 { get; set; }
+    [HideFromIl2Cpp]
     public PlayerVoteArea? Swap2 { get; set; }
     public DoomableType DoomHintType => DoomableType.Trickster;
-    public string RoleName => TouLocale.Get(TouNames.Swapper, "Swapper");
-    public string RoleDescription => "Swap Votes To Save The Crew!";
-    public string RoleLongDescription => "Swap votes from one player to another during a meeting";
+    public string LocaleKey => "Swapper";
+    public string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
+
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
+    
+    [HideFromIl2Cpp]
+    public List<CustomButtonWikiDescription> Abilities
+    {
+        get
+        {
+            return new List<CustomButtonWikiDescription>
+            {
+                new(TouLocale.GetParsed($"TouRole{LocaleKey}SwapWiki", "Swap (Meeting)"),
+                    TouLocale.GetParsed($"TouRole{LocaleKey}SwapWikiDescription"),
+                    TouAssets.SwapActive)
+            };
+        }
+    }
     public Color RoleColor => TownOfUsColors.Swapper;
     public ModdedRoleTeams Team => ModdedRoleTeams.Crewmate;
     public RoleAlignment RoleAlignment => RoleAlignment.CrewmatePower;
@@ -44,23 +64,6 @@ public sealed class SwapperRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITouCrewR
     {
         return ITownOfUsRole.SetNewTabText(this);
     }
-
-    public string GetAdvancedDescription()
-    {
-        return
-            $"The {RoleName} is a Crewmate Power that can swap the votes of two players in a meeting. " +
-            "Their meeting vote areas will be swapped visually, and the votes will be swapped. " +
-            "If player 1 recieved the most votes, and you swap them with player 2, player 2 will now be ejected instead. "
-            + MiscUtils.AppendOptionsText(GetType());
-    }
-
-    [HideFromIl2Cpp]
-    public List<CustomButtonWikiDescription> Abilities { get; } =
-    [
-        new("Swap (Meeting)",
-            "Select two players to swap votes for, and at the end of the meeting, they will swap spots!",
-            TouAssets.SwapActive)
-    ];
 
     public override void Initialize(PlayerControl player)
     {
@@ -156,32 +159,14 @@ public sealed class SwapperRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITouCrewR
             meetingMenu.Actives[voteArea.TargetPlayerId] = !meetingMenu.Actives[voteArea.TargetPlayerId];
         }
 
-        if (Player.HasModifier<InsaneModifier>())
-        {
-            if (Swap1 != null && Swap2 != null)
-            {
-                List<PlayerVoteArea> allAreas = MeetingHud.Instance.playerStates.ToList();
-
-                PlayerVoteArea newSwap1 = allAreas.Where(x => x.TargetPlayerId != Player.PlayerId).Random();
-                PlayerVoteArea newSwap2 = allAreas.Where(x => x.TargetPlayerId != Player.PlayerId && x != newSwap1).Random();
-
-                RpcSyncSwaps(Player, newSwap1?.TargetPlayerId ?? 255, newSwap2?.TargetPlayerId ?? 255);
-                return;
-            }
-        }
-
         RpcSyncSwaps(Player, Swap1?.TargetPlayerId ?? 255, Swap2?.TargetPlayerId ?? 255);
     }
 
-    [MethodRpc((uint)TownOfUsRpc.SetSwaps, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.SetSwaps)]
     public static void RpcSyncSwaps(PlayerControl swapper, byte swap1, byte swap2)
     {
         var swapperRole = swapper.Data?.Role as SwapperRole;
         var areas = MeetingHud.Instance.playerStates.ToList();
-
-        if (swapper == PlayerControl.LocalPlayer)
-            return;
-
         swapperRole!.Swap1 = areas.Find(x => x.TargetPlayerId == swap1);
         swapperRole.Swap2 = areas.Find(x => x.TargetPlayerId == swap2);
     }

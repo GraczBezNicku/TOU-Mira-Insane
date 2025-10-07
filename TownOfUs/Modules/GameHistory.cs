@@ -3,10 +3,8 @@ using HarmonyLib;
 using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.Roles;
-using Reactor.Utilities.Extensions;
-using TownOfUs.Modifiers.Game.Universal;
+using MiraAPI.Utilities;
 using TownOfUs.Modifiers.Impostor;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Roles.Impostor;
@@ -62,46 +60,12 @@ public sealed class BodyReport
 
         var typeOfColor = MedicRole.GetColorTypeForPlayer(br.Killer!);
 
-        if (br.Reporter.HasModifier<InsaneModifier>())
-        {
-            InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
-
-            switch (options.InsaneMedicReportSees)
-            {
-                case InsaneMedicReportSees.Opposite:
-                    if (typeOfColor == "lighter")
-                        typeOfColor = "darker";
-                    else
-                        typeOfColor = "lighter";
-                    break;
-                case InsaneMedicReportSees.Random:
-                    typeOfColor = UnityEngine.Random.value < 0.5f ? "darker" : "lighter";
-                    break;
-            }
-        }
-
         return
             $"Body Report: The killer appears to be a {typeOfColor} color. (Killed {Math.Round(br.KillAge / 1000)}s ago)";
     }
 
     public static string ParseDetectiveReport(BodyReport br)
     {
-        if (br.Reporter.HasModifier<InsaneModifier>())
-        {
-            float randomKillTime = br.KillAge + UnityEngine.Random.Range(10, 30);
-
-            string[] possibleResponses =
-            [
-                $"Body Report: The corpse is too old to gain information from. (Killed {Math.Round(randomKillTime / 1000)}s ago)",
-                $"Body Report: The kill appears to have been a suicide! (Killed {Math.Round(randomKillTime / 1000)}s ago)",
-                $"Body Report: The killer appears to be a Neutral Role! (Killed {Math.Round(randomKillTime / 1000)}s ago)",
-                $"Body Report: The killer appears to be a Crewmate! (Killed {Math.Round(randomKillTime / 1000)}s ago)",
-                $"Body Report: The killer appears to be an Impostor! (Killed {Math.Round(randomKillTime / 1000)}s ago)"
-            ];
-
-            return possibleResponses.Random();
-        }
-
         if (br.KillAge > OptionGroupSingleton<DetectiveOptions>.Instance.DetectiveFactionDuration * 1000 && OptionGroupSingleton<DetectiveOptions>.Instance.DetectiveFactionDuration > 0)
         {
             return
@@ -122,7 +86,7 @@ public sealed class BodyReport
         }
 
         var prefix = "a";
-        if (role.NiceName.StartsWithVowel())
+        if (role.GetRoleName().StartsWithVowel())
         {
             prefix = "an";
         }
@@ -130,7 +94,7 @@ public sealed class BodyReport
         if (br.KillAge < OptionGroupSingleton<DetectiveOptions>.Instance.DetectiveRoleDuration * 1000)
         {
             return
-                $"Body Report: The killer appears to be {prefix} {role.NiceName}! (Killed {Math.Round(br.KillAge / 1000)}s ago)";
+                $"Body Report: The killer appears to be {prefix} {role.GetRoleName()}! (Killed {Math.Round(br.KillAge / 1000)}s ago)";
         }
 
         if (br.Killer.IsNeutral())
@@ -165,7 +129,7 @@ public static class GameHistory
 
     public static void RegisterRole(PlayerControl player, RoleBehaviour role, bool clean = false)
     {
-        //Logger<TownOfUsPlugin>.Message($"RegisterRole - player: '{player.Data.PlayerName}', role: '{role.NiceName}'");
+        //Logger<TownOfUsPlugin>.Message($"RegisterRole - player: '{player.Data.PlayerName}', role: '{role.GetRoleName()}'");
 
         if (clean)
         {

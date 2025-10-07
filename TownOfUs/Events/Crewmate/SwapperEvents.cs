@@ -7,7 +7,6 @@ using MiraAPI.Utilities;
 using MiraAPI.Voting;
 using Reactor.Utilities;
 using TownOfUs.Events.Modifiers;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Roles.Crewmate;
 using TownOfUs.Utilities;
 using UnityEngine;

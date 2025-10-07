@@ -12,7 +12,6 @@ using Reactor.Utilities;
 using Reactor.Utilities.Extensions;
 using TownOfUs.Buttons.Crewmate;
 using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modules;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Utilities;
@@ -25,6 +24,7 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
     private MeetingMenu meetingMenu;
     public override bool IsAffectedByComms => false;
 
+    [HideFromIl2Cpp]
     public PlayerControl? Shielded { get; set; }
 
     public void FixedUpdate()
@@ -41,9 +41,32 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
     }
 
     public DoomableType DoomHintType => DoomableType.Protective;
-    public string RoleName => TouLocale.Get(TouNames.Medic, "Medic");
-    public string RoleDescription => "Create A Shield To Protect A Crewmate";
-    public string RoleLongDescription => "Protect a crewmate with a shield";
+    public string LocaleKey => "Medic";
+    public string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
+    
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
+
+    [HideFromIl2Cpp]
+    public List<CustomButtonWikiDescription> Abilities
+    {
+        get
+        {
+            return new List<CustomButtonWikiDescription>
+            {
+                new(TouLocale.GetParsed($"TouRole{LocaleKey}Shield", "Shield"),
+                    TouLocale.GetParsed($"TouRole{LocaleKey}ShieldWikiDescription"),
+                    TouCrewAssets.MedicSprite)
+            };
+        }
+    }
+
     public Color RoleColor => TownOfUsColors.Medic;
     public ModdedRoleTeams Team => ModdedRoleTeams.Crewmate;
     public RoleAlignment RoleAlignment => RoleAlignment.CrewmateProtective;
@@ -67,20 +90,6 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
 
         return stringB;
     }
-
-    public string GetAdvancedDescription()
-    {
-        return $"The {RoleName} is a Crewmate Protective role that can give a Shield to a player."
-               + MiscUtils.AppendOptionsText(GetType());
-    }
-
-    [HideFromIl2Cpp]
-    public List<CustomButtonWikiDescription> Abilities { get; } =
-    [
-        new("Shield",
-            "Give a Shield to a player, protecting them from being killed by others",
-            TouCrewAssets.MedicSprite)
-    ];
 
     public override void Initialize(PlayerControl player)
     {
@@ -306,17 +315,7 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
 
     public static void DangerAnim()
     {
-        float delay = 0;
-
-        if (PlayerControl.LocalPlayer.Data.Role is MedicRole)
-        {
-            if (PlayerControl.LocalPlayer.HasModifier<InsaneModifier>())
-            {
-                delay = UnityEngine.Random.Range(5, 10);
-            }
-        }
-
-        Coroutines.Start(MiscUtils.CoFlash(new Color(0f, 0.5f, 0f, 1f), delay: delay));
+        Coroutines.Start(MiscUtils.CoFlash(new Color(0f, 0.5f, 0f, 1f)));
     }
 
     public static void OnRoundStart()
@@ -325,7 +324,7 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
             OptionGroupSingleton<MedicOptions>.Instance.ChangeTarget;
     }
 
-    [MethodRpc((uint)TownOfUsRpc.MedicShield, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.MedicShield)]
     public static void RpcMedicShield(PlayerControl medic, PlayerControl target)
     {
         if (medic.Data.Role is not MedicRole)
@@ -339,7 +338,7 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
         role?.SetShieldedPlayer(target);
     }
 
-    [MethodRpc((uint)TownOfUsRpc.ClearMedicShield, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.ClearMedicShield)]
     public static void RpcClearMedicShield(PlayerControl medic)
     {
         ClearMedicShield(medic);
@@ -358,7 +357,7 @@ public sealed class MedicRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRo
         role?.SetShieldedPlayer(null);
     }
 
-    [MethodRpc((uint)TownOfUsRpc.MedicShieldAttacked, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.MedicShieldAttacked)]
     public static void RpcMedicShieldAttacked(PlayerControl medic, PlayerControl source, PlayerControl shielded)
     {
         if (medic.Data.Role is not MedicRole)

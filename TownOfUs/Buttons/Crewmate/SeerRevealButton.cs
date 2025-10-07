@@ -1,12 +1,10 @@
+using System.Text;
 using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
-using System.Text;
 using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modifiers.Impostor;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles;
 using TownOfUs.Roles.Crewmate;
@@ -17,8 +15,8 @@ namespace TownOfUs.Buttons.Crewmate;
 
 public sealed class SeerRevealButton : TownOfUsRoleButton<SeerRole, PlayerControl>
 {
-    public override string Name => "Reveal";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleSeerReveal", "Reveal");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Seer;
     public override float Cooldown => OptionGroupSingleton<SeerOptions>.Instance.SeerCooldown + MapCooldown;
     public override LoadableAsset<Sprite> Sprite => TouCrewAssets.SeerSprite;
@@ -52,24 +50,7 @@ public sealed class SeerRevealButton : TownOfUsRoleButton<SeerRole, PlayerContro
         var options = OptionGroupSingleton<SeerOptions>.Instance;
         var possibleAlignment = new StringBuilder();
 
-        bool isEvil = IsEvil(target);
-
-        if (PlayerControl.LocalPlayer.HasModifier<InsaneModifier>())
-        {
-            InsaneOptions insaneOptions = OptionGroupSingleton<InsaneOptions>.Instance;
-
-            switch (insaneOptions.InsaneSeerSees)
-            {
-                case InsaneSeerSees.Opposite:
-                    isEvil = !isEvil;
-                    break;
-                case InsaneSeerSees.Random:
-                    isEvil = UnityEngine.Random.value < 0.5f;
-                    break;
-            }
-        }
-
-        if (isEvil)
+        if (IsEvil(target))
         {
             target.AddModifier<SeerEvilRevealModifier>();
             var possiblyGood = options.ShowCrewmateKillingAsRed ? "possibly" : string.Empty;

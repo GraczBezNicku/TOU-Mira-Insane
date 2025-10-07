@@ -3,9 +3,7 @@ using MiraAPI.Modifiers;
 using MiraAPI.Utilities;
 using MiraAPI.Utilities.Assets;
 using Reactor.Utilities;
-using Reactor.Utilities.Extensions;
 using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Modifiers.Alliance;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Roles.Crewmate;
@@ -16,8 +14,8 @@ namespace TownOfUs.Buttons.Crewmate;
 
 public sealed class HunterStalkButton : TownOfUsRoleButton<HunterRole, PlayerControl>
 {
-    public override string Name => "Stalk";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleHunterStalk", "Stalk");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Hunter;
     public override float Cooldown => OptionGroupSingleton<HunterOptions>.Instance.HunterStalkCooldown + MapCooldown;
     public override float EffectDuration => OptionGroupSingleton<HunterOptions>.Instance.HunterStalkDuration;
@@ -38,19 +36,13 @@ public sealed class HunterStalkButton : TownOfUsRoleButton<HunterRole, PlayerCon
             Color.white, new Vector3(0f, 1f, -20f), spr: TouRoleIcons.Hunter.LoadAsset());
         notif1.Text.SetOutlineThickness(0.35f);
 
-        if (PlayerControl.LocalPlayer.TryGetModifier<InsaneModifier>(out var insane))
-        {
-            PlayerControl randomTarget = Helpers.GetAlivePlayers().Where(x => x != PlayerControl.LocalPlayer).Random();
-            randomTarget.RpcAddModifier<InsaneHunterStalkedModifier>(PlayerControl.LocalPlayer, Target);
-        }
-
         Target.RpcAddModifier<HunterStalkedModifier>(PlayerControl.LocalPlayer);
-        OverrideName("Stalking");
+        OverrideName(TouLocale.Get("TouRoleHunterStalking", "Stalking"));
     }
 
     public override void OnEffectEnd()
     {
-        OverrideName("Stalk");
+        OverrideName(TouLocale.Get("TouRoleHunterStalk", "Stalk"));
     }
 
     public override PlayerControl? GetTarget()

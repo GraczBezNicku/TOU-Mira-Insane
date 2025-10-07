@@ -8,11 +8,8 @@ using MiraAPI.Modifiers;
 using MiraAPI.Roles;
 using TownOfUs.Buttons;
 using TownOfUs.Modifiers;
-using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modifiers.Neutral;
 using TownOfUs.Options;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Roles.Neutral;
 using TownOfUs.Utilities;
 
@@ -90,14 +87,6 @@ public static class GuardianAngelEvents
             (source.TryGetModifier<IndirectAttackerModifier>(out var indirect) && indirect.IgnoreShield))
         {
             return false;
-        }
-
-        if (target.HasModifier<GuardianAngelProtectModifier>())
-        {
-            if (target.GetModifier<GuardianAngelProtectModifier>().Guardian.HasModifier<InsaneModifier>())
-            {
-                return false;
-            }
         }
 
         @event.Cancel();

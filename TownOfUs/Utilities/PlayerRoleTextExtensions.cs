@@ -3,7 +3,6 @@ using MiraAPI.Modifiers;
 using TownOfUs.Modifiers;
 using TownOfUs.Modifiers.Crewmate;
 using TownOfUs.Modifiers.Game.Alliance;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Modifiers.Impostor;
 using TownOfUs.Modifiers.Neutral;
 using TownOfUs.Modules;
@@ -95,14 +94,17 @@ public static class PlayerRoleTextExtensions
     public static string UpdateProtectionSymbols(this string name, PlayerControl player, bool hidden = false)
     {
         var genOpt = OptionGroupSingleton<GeneralOptions>.Instance;
-        if ((player.HasModifier<GuardianAngelTargetModifier>(x => x.OwnerId == PlayerControl.LocalPlayer.PlayerId) &&
-             PlayerControl.LocalPlayer.IsRole<GuardianAngelTouRole>())
-            || (player.HasModifier<GuardianAngelTargetModifier>() &&
-                ((PlayerControl.LocalPlayer.HasDied() && genOpt.TheDeadKnow && !hidden)
-                 || (player.AmOwner &&
-                     OptionGroupSingleton<GuardianAngelOptions>.Instance.GATargetKnows))))
+
+        if (player.Data != null && !player.Data.Disconnected &&
+            ((player.HasModifier<GuardianAngelTargetModifier>(x => x.OwnerId == PlayerControl.LocalPlayer.PlayerId) &&
+              PlayerControl.LocalPlayer.IsRole<GuardianAngelTouRole>())
+             || (player.HasModifier<GuardianAngelTargetModifier>() &&
+                 ((PlayerControl.LocalPlayer.HasDied() && genOpt.TheDeadKnow && !hidden)
+                  || (player.AmOwner &&
+                      OptionGroupSingleton<GuardianAngelOptions>.Instance.GATargetKnows)))))
         {
-            name += (player.HasModifier<GuardianAngelProtectModifier>() && OptionGroupSingleton<GuardianAngelOptions>.Instance.ShowProtect is not ProtectOptions.GA)
+            name += (player.HasModifier<GuardianAngelProtectModifier>() &&
+                     OptionGroupSingleton<GuardianAngelOptions>.Instance.ShowProtect is not ProtectOptions.GA)
                 ? "<color=#FFD900> ★</color>"
                 : "<color=#B3FFFF> ★</color>";
         }
@@ -210,19 +212,6 @@ public static class PlayerRoleTextExtensions
                 !hidden))
         {
             name += "<color=#D53F42> @</color>";
-        }
-
-        return name;
-    }
-
-    public static string UpdateInsaneSymbol(this string name, PlayerControl player, bool isMeeting)
-    {
-        if (player.TryGetModifier<InsaneModifier>(out var insane))
-        {
-            if (insane.WasRevealed 
-                || (PlayerControl.LocalPlayer.TryGetModifier<DeathHandlerModifier>(out var handler) && !handler.DiedThisRound)
-                || (isMeeting && PlayerControl.LocalPlayer.Data.IsDead))
-                name += $"{TownOfUsColors.Insane.ToTextColor()} ?</color>";
         }
 
         return name;

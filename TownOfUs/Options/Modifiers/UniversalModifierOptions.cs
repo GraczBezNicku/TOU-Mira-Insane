@@ -11,15 +11,6 @@ public sealed class UniversalModifierOptions : AbstractOptionGroup
     public override bool ShowInModifiersMenu => true;
     public override uint GroupPriority => 1;
 
-    [ModdedNumberOption("Insane Amount", 0, 5)]
-    public float InsaneAmount { get; set; } = 0;
-
-    public ModdedNumberOption InsaneChance { get; } =
-        new("Insane Chance", 50f, 0, 100f, 10f, MiraNumberSuffixes.Percent)
-        {
-            Visible = () => OptionGroupSingleton<UniversalModifierOptions>.Instance.InsaneAmount > 0
-        };
-
     [ModdedNumberOption("Button Barry Amount", 0, 1)]
     public float ButtonBarryAmount { get; set; } = 0;
 

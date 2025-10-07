@@ -12,7 +12,6 @@ using Reactor.Utilities;
 using Reactor.Utilities.Extensions;
 using TownOfUs.Modifiers.Crewmate;
 using TownOfUs.Modifiers.Game.Alliance;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Utilities;
 using UnityEngine;
@@ -22,9 +21,10 @@ namespace TownOfUs.Roles.Crewmate;
 public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsRole, IWikiDiscoverable, IDoomable
 {
     private Dictionary<byte, ArrowBehaviour>? _snitchArrows;
+    [HideFromIl2Cpp]
     public ArrowBehaviour? SnitchRevealArrow { get; private set; }
     public bool CompletedAllTasks => TaskStage is TaskStage.CompletedTasks;
-    public bool OnLastTask => TaskStage is TaskStage.Revealed;
+    public bool OnLastTask => TaskStage is TaskStage.Revealed or TaskStage.CompletedTasks;
     public TaskStage TaskStage { get; private set; } = TaskStage.Unrevealed;
 
     private void FixedUpdate()
@@ -46,11 +46,17 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
     }
 
     public DoomableType DoomHintType => DoomableType.Insight;
-    public string RoleName => TouLocale.Get(TouNames.Snitch, "Snitch");
-    public string RoleDescription => "Find the <color=#FF0000FF>Impostors</color>!";
+    public string LocaleKey => "Snitch";
+    public string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
 
-    public string RoleLongDescription =>
-        CompletedAllTasks ? "Find the Impostors!" : "Complete all your tasks to discover the Impostors.";
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
 
     public Color RoleColor => TownOfUsColors.Snitch;
     public ModdedRoleTeams Team => ModdedRoleTeams.Crewmate;
@@ -65,39 +71,34 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
     [HideFromIl2Cpp]
     public StringBuilder SetTabText()
     {
-        var alignment = RoleAlignment.ToDisplayString().Replace("Crewmate", "<color=#68ACF4FF>Crewmate");
-
         var stringB = new StringBuilder();
         stringB.AppendLine(CultureInfo.InvariantCulture,
-            $"{RoleColor.ToTextColor()}You are a<b> {RoleName}.</b></color>");
-        stringB.AppendLine(CultureInfo.InvariantCulture, $"<size=60%>Alignment: <b>{alignment}</color></b></size>");
+            $"{RoleColor.ToTextColor()}{TouLocale.Get("YouAreA")}<b> {RoleName}.</b></color>");
+        stringB.AppendLine(CultureInfo.InvariantCulture, $"<size=60%>{TouLocale.Get("Alignment")}: <b>{MiscUtils.GetParsedRoleAlignment(RoleAlignment, true)}</b></size>");
         stringB.Append("<size=70%>");
-        var desc = RoleLongDescription;
+
+        var desc = CompletedAllTasks ? "CompletedTasks" : string.Empty;
         if (PlayerControl.LocalPlayer.HasModifier<EgotistModifier>())
         {
-            desc = CompletedAllTasks
-                ? "Help the Impostors!"
-                : "Complete all your tasks to discover & help the Impostors.";
+            desc += "Ego";
         }
 
-        stringB.AppendLine(CultureInfo.InvariantCulture, $"{desc}");
+        var text = TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription{desc}");
+
+        stringB.AppendLine(CultureInfo.InvariantCulture, $"{text}");
 
         return stringB;
     }
 
-    public string GetAdvancedDescription()
-    {
-        return
-            $"The {RoleName} is a Crewmate Investigative role that can reveal the Impostors to themselves by finishing all their tasks. " +
-            $"Upon completing all tasks, the Impostors will be revealed to the {RoleName} with an arrow and their red name."
-            + MiscUtils.AppendOptionsText(GetType());
-    }
-
     public void CheckTaskRequirements()
     {
-        var completedTasks = Player.myTasks.ToArray().Count(t => t.IsComplete);
+        var realTasks = Player.myTasks.ToArray()
+            .Where(x => !PlayerTask.TaskIsEmergency(x) && !x.TryCast<ImportantTextTask>()).ToList();
+        
+        var completedTasks = realTasks.Count(t => t.IsComplete);
+        var tasksRemaining = realTasks.Count - completedTasks;
 
-        if (TaskStage is TaskStage.Unrevealed && Player.myTasks.Count - completedTasks <=
+        if (TaskStage is TaskStage.Unrevealed && tasksRemaining <=
             (int)OptionGroupSingleton<SnitchOptions>.Instance.TaskRemainingWhenRevealed)
         {
             TaskStage = TaskStage.Revealed;
@@ -136,7 +137,7 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
             }
         }
 
-        if (completedTasks == Player.myTasks.Count)
+        if (completedTasks == realTasks.Count)
         {
             TaskStage = TaskStage.CompletedTasks;
             if (Player.AmOwner)
@@ -172,6 +173,7 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
                 notif1.transform.localPosition = new Vector3(0f, 1f, -20f);
             }
         }
+        if (TownOfUsPlugin.IsDevBuild) Logger<TownOfUsPlugin>.Error($"Snitch Stage for '{Player.Data.PlayerName}': {TaskStage.ToDisplayString()} - ({completedTasks} / {realTasks.Count})");
     }
 
     public static bool IsTargetOfSnitch(PlayerControl player)
@@ -239,18 +241,10 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
             return;
         }
 
-
         Coroutines.Start(MiscUtils.CoFlash(TownOfUsColors.Snitch, alpha: 0.5f));
         _snitchArrows = new Dictionary<byte, ArrowBehaviour>();
         var imps = Helpers.GetAlivePlayers().Where(plr => plr.Data.Role.IsImpostor && !plr.IsTraitor());
         var traitor = Helpers.GetAlivePlayers().FirstOrDefault(plr => plr.IsTraitor());
-
-        if (Player.HasModifier<InsaneModifier>())
-        {
-            int impsCount = imps.Count();
-            imps = Helpers.GetAlivePlayers().Where(x => x != Player).ToList().Randomize().Take(impsCount);
-        }
-
         imps.ToList().ForEach(imp =>
         {
             _snitchArrows.Add(imp.PlayerId, MiscUtils.CreateArrow(imp.transform, TownOfUsColors.Impostor));
@@ -260,11 +254,6 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
 
         if (OptionGroupSingleton<SnitchOptions>.Instance.SnitchSeesTraitor && traitor != null)
         {
-            if (Player.HasModifier<InsaneModifier>())
-            {
-                traitor = Helpers.GetAlivePlayers().Where(x => x != Player).Random();
-            }
-
             _snitchArrows.Add(traitor.PlayerId, MiscUtils.CreateArrow(traitor.transform, TownOfUsColors.Impostor));
             PlayerNameColor.Set(traitor);
             traitor.AddModifier<SnitchImpostorRevealModifier>();
@@ -274,37 +263,19 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
         {
             var neutrals = MiscUtils.GetRoles(RoleAlignment.NeutralKilling)
                 .Where(role => !role.Player.Data.IsDead && !role.Player.Data.Disconnected);
-
-            if (Player.HasModifier<InsaneModifier>())
+            neutrals.ToList().ForEach(neutral =>
             {
-                int neutralCount = neutrals.Count();
-                var playerList = Helpers.GetAlivePlayers().Where(x => x != Player).ToList().Randomize().Take(neutralCount);
-
-                foreach (PlayerControl ply in playerList)
-                {
-                    _snitchArrows.Add(ply.PlayerId,
-                    MiscUtils.CreateArrow(ply.transform, TownOfUsColors.Neutral));
-                    PlayerNameColor.Set(ply);
-                    ply.AddModifier<SnitchImpostorRevealModifier>();
-                }
-            }
-            else
-            {
-                neutrals.ToList().ForEach(neutral =>
-                {
-                    _snitchArrows.Add(neutral.Player.PlayerId,
-                        MiscUtils.CreateArrow(neutral.Player.transform, TownOfUsColors.Neutral));
-                    PlayerNameColor.Set(neutral.Player);
-                    neutral.Player.AddModifier<SnitchImpostorRevealModifier>();
-                });
-            }
+                _snitchArrows.Add(neutral.Player.PlayerId,
+                    MiscUtils.CreateArrow(neutral.Player.transform, TownOfUsColors.Neutral));
+                PlayerNameColor.Set(neutral.Player);
+                neutral.Player.AddModifier<SnitchImpostorRevealModifier>();
+            });
         }
     }
 
     public void AddSnitchTraitorArrows()
     {
-        if (PlayerControl.LocalPlayer.IsTraitor() && OptionGroupSingleton<SnitchOptions>.Instance.SnitchSeesTraitor &&
-            OnLastTask)
+        if (PlayerControl.LocalPlayer.IsTraitor() && OnLastTask)
         {
             CreateRevealingArrow();
         }
@@ -312,12 +283,6 @@ public sealed class SnitchRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
         if (CompletedAllTasks && Player.AmOwner)
         {
             var traitor = Helpers.GetAlivePlayers().FirstOrDefault(plr => plr.IsTraitor());
-
-            if (Player.HasModifier<InsaneModifier>())
-            {
-                traitor = Helpers.GetAlivePlayers().Where(x => x != Player).Random();
-            }
-
             if (_snitchArrows == null || traitor == null ||
                 (_snitchArrows.TryGetValue(traitor.PlayerId, out var arrow) && arrow != null))
             {

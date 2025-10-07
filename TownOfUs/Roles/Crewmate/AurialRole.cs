@@ -1,16 +1,11 @@
 ﻿using System.Collections;
 using System.Text;
-using Epic.OnlineServices;
 using Il2CppInterop.Runtime.Attributes;
 using MiraAPI.GameOptions;
-using MiraAPI.Modifiers;
 using MiraAPI.Patches.Stubs;
 using MiraAPI.Roles;
-using MiraAPI.Utilities;
 using Reactor.Networking.Attributes;
 using Reactor.Utilities;
-using Reactor.Utilities.Extensions;
-using TownOfUs.Modifiers.Game.Universal;
 using TownOfUs.Options.Roles.Crewmate;
 using TownOfUs.Utilities;
 using UnityEngine;
@@ -22,9 +17,17 @@ public sealed class AurialRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
 {
     private readonly Dictionary<(Vector3, int), ArrowBehaviour> _senseArrows = new();
     public DoomableType DoomHintType => DoomableType.Perception;
-    public string RoleName => TouLocale.Get(TouNames.Aurial, "Aurial");
-    public string RoleDescription => "Sense Disturbances In Your Aura.";
-    public string RoleLongDescription => "Any player abilities used within your aura you will sense";
+    public string LocaleKey => "Aurial";
+    public string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
+    
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
     public Color RoleColor => TownOfUsColors.Aurial;
     public ModdedRoleTeams Team => ModdedRoleTeams.Crewmate;
     public RoleAlignment RoleAlignment => RoleAlignment.CrewmateInvestigative;
@@ -45,13 +48,6 @@ public sealed class AurialRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
     public StringBuilder SetTabText()
     {
         return ITownOfUsRole.SetNewTabText(this);
-    }
-
-    public string GetAdvancedDescription()
-    {
-        return
-            $"The {RoleName} is a Crewmate Investigative role that will be alerted whenever a player near them uses one of their abilities." +
-            MiscUtils.AppendOptionsText(GetType());
     }
 
     public override void Deinitialize(PlayerControl targetPlayer)
@@ -138,7 +134,7 @@ public sealed class AurialRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
         _senseArrows.Remove(arrow.Key);
     }
 
-    [MethodRpc((uint)TownOfUsRpc.AurialSense, SendImmediately = true)]
+    [MethodRpc((uint)TownOfUsRpc.AurialSense)]
     public static void RpcSense(PlayerControl player, PlayerControl source)
     {
         if (player.Data.Role is not AurialRole aurial)
@@ -149,11 +145,6 @@ public sealed class AurialRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITownOfUsR
 
         if (player.AmOwner)
         {
-            if (player.HasModifier<InsaneModifier>())
-            {
-                source = Helpers.GetAlivePlayers().Where(x => x != player).Random();
-            }
-
             Coroutines.Start(aurial.Sense(source));
         }
     }

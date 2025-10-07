@@ -22,11 +22,35 @@ public sealed class DeputyRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITouCrewRo
     private MeetingMenu meetingMenu;
     public override bool IsAffectedByComms => false;
 
+    [HideFromIl2Cpp]
     public PlayerControl? Killer { get; set; }
     public DoomableType DoomHintType => DoomableType.Relentless;
-    public string RoleName => TouLocale.Get(TouNames.Deputy, "Deputy");
-    public string RoleDescription => "Camp Crewmates To Catch Their Killer";
-    public string RoleLongDescription => "Camp crewmates, then shoot their killer in the meeting!";
+    public string LocaleKey => "Deputy";
+    public string RoleName => TouLocale.Get($"TouRole{LocaleKey}");
+    public string RoleDescription => TouLocale.GetParsed($"TouRole{LocaleKey}IntroBlurb");
+    public string RoleLongDescription => TouLocale.GetParsed($"TouRole{LocaleKey}TabDescription");
+    
+    public string GetAdvancedDescription()
+    {
+        return
+            TouLocale.GetParsed($"TouRole{LocaleKey}WikiDescription") +
+            MiscUtils.AppendOptionsText(GetType());
+    }
+
+    [HideFromIl2Cpp]
+    public List<CustomButtonWikiDescription> Abilities
+    {
+        get
+        {
+            return new List<CustomButtonWikiDescription>
+            {
+                new(TouLocale.GetParsed($"TouRole{LocaleKey}Camp", "Camp"),
+                    TouLocale.GetParsed($"TouRole{LocaleKey}CampWikiDescription"),
+                    TouCrewAssets.CampButtonSprite)
+            };
+        }
+    }
+
     public Color RoleColor => TownOfUsColors.Deputy;
     public ModdedRoleTeams Team => ModdedRoleTeams.Crewmate;
     public RoleAlignment RoleAlignment => RoleAlignment.CrewmateKilling;
@@ -43,22 +67,6 @@ public sealed class DeputyRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITouCrewRo
     {
         return ITownOfUsRole.SetNewTabText(this);
     }
-
-    public string GetAdvancedDescription()
-    {
-        return
-            $"The {RoleName} is a Crewmate Killing role that can camp other players. Once a camped player dies the {RoleName} is alerted to their death. " +
-            $"The following meeting the {RoleName} may then attempt to shoot the killer of the camped player. If successful the killer dies and if not nothing happens." +
-            MiscUtils.AppendOptionsText(GetType());
-    }
-
-    [HideFromIl2Cpp]
-    public List<CustomButtonWikiDescription> Abilities { get; } =
-    [
-        new("Camp",
-            "Camp a player to be alerted once they die. After their death, you may attempt to shoot the killer. If your shot is successful, the killer dies, if not, nothing will happen.",
-            TouCrewAssets.CampButtonSprite)
-    ];
 
     public static void OnRoundStart()
     {
@@ -148,11 +156,11 @@ public sealed class DeputyRole(IntPtr cppPtr) : CrewmateRole(cppPtr), ITouCrewRo
         }
         else
         {
-            var title = $"<color=#{TownOfUsColors.Deputy.ToHtmlStringRGBA()}>Deputy Feedback</color>";
-            MiscUtils.AddFakeChat(PlayerControl.LocalPlayer.Data, title,
-                "You missed your shot! They are either not the killer or are invincible.", false, true);
+            var title = $"<color=#{TownOfUsColors.Deputy.ToHtmlStringRGBA()}>{TouLocale.Get("TouRoleDeputyMessageTitle")}</color>";
+            var msg = TouLocale.Get("TouRoleDeputyMissedShot");
+            MiscUtils.AddFakeChat(PlayerControl.LocalPlayer.Data, title, msg, false, true);
             var notif1 = Helpers.CreateAndShowNotification(
-                $"<b>{TownOfUsColors.Deputy.ToTextColor()}You missed your shot! They are either not the killer or are invincible.</b></color>",
+                $"<b>{TownOfUsColors.Deputy.ToTextColor()}{msg}</b></color>",
                 Color.white, new Vector3(0f, 1f, -20f), spr: TouRoleIcons.Deputy.LoadAsset());
             notif1.Text.SetOutlineThickness(0.35f);
         }

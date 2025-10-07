@@ -13,8 +13,8 @@ namespace TownOfUs.Buttons.Neutral;
 
 public sealed class MercenaryGuardButton : TownOfUsRoleButton<MercenaryRole, PlayerControl>
 {
-    public override string Name => "Guard";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleMercenaryGuard", "Guard");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Mercenary;
     public override float Cooldown => OptionGroupSingleton<MercenaryOptions>.Instance.GuardCooldown + MapCooldown;
     public override int MaxUses => (int)OptionGroupSingleton<MercenaryOptions>.Instance.MaxUses;

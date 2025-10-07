@@ -11,8 +11,8 @@ namespace TownOfUs.Buttons.Impostor;
 
 public sealed class UndertakerDragDropButton : TownOfUsRoleButton<UndertakerRole, DeadBody>, IAftermathableBodyButton
 {
-    public override string Name => "Drag";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleUndertakerDrag", "Drag");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Impostor;
     public override float Cooldown => OptionGroupSingleton<UndertakerOptions>.Instance.DragCooldown + MapCooldown;
     public override LoadableAsset<Sprite> Sprite => TouImpAssets.DragSprite;
@@ -78,13 +78,13 @@ public sealed class UndertakerDragDropButton : TownOfUsRoleButton<UndertakerRole
     public void SetDrag()
     {
         OverrideSprite(TouImpAssets.DragSprite.LoadAsset());
-        OverrideName("Drag");
+        OverrideName(TouLocale.Get("TouRoleUndertakerDrag", "Drag"));
     }
 
     public void SetDrop()
     {
         OverrideSprite(TouImpAssets.DropSprite.LoadAsset());
-        OverrideName("Drop");
+        OverrideName(TouLocale.Get("TouRoleUndertakerDrop", "Drop"));
     }
 
     public override bool IsTargetValid(DeadBody? target)

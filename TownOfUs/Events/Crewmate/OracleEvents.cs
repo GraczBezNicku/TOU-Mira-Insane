@@ -3,12 +3,9 @@ using MiraAPI.Events;
 using MiraAPI.Events.Vanilla.Gameplay;
 using MiraAPI.Events.Vanilla.Meeting;
 using MiraAPI.Events.Vanilla.Meeting.Voting;
-using MiraAPI.GameOptions;
 using MiraAPI.Modifiers;
 using MiraAPI.Roles;
 using TownOfUs.Modifiers.Crewmate;
-using TownOfUs.Modifiers.Game.Universal;
-using TownOfUs.Options.Modifiers.Universal;
 using TownOfUs.Roles.Crewmate;
 
 namespace TownOfUs.Events.Crewmate;
@@ -32,15 +29,6 @@ public static class OracleEvents
         if (@event.ExiledPlayer?.Object.HasModifier<OracleBlessedModifier>() == false)
         {
             return;
-        }
-
-        OracleBlessedModifier modifier = @event.ExiledPlayer?.Object.GetModifier<OracleBlessedModifier>();
-        if (modifier.Oracle.HasModifier<InsaneModifier>())
-        {
-            InsaneOptions options = OptionGroupSingleton<InsaneOptions>.Instance;
-
-            if (!options.InsaneOracleBlessProtects)
-                return;
         }
 
         OracleRole.RpcOracleBless(@event.ExiledPlayer!.Object);

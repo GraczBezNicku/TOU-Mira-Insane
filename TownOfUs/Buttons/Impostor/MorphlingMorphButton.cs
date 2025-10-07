@@ -12,8 +12,8 @@ namespace TownOfUs.Buttons.Impostor;
 
 public sealed class MorphlingMorphButton : TownOfUsRoleButton<MorphlingRole>, IAftermathableButton
 {
-    public override string Name => "Morph";
-    public override string Keybind => Keybinds.SecondaryAction;
+    public override string Name => TouLocale.Get("TouRoleMorphlingMorph", "Morph");
+    public override BaseKeybind Keybind => Keybinds.SecondaryAction;
     public override Color TextOutlineColor => TownOfUsColors.Impostor;
     public override float Cooldown => OptionGroupSingleton<MorphlingOptions>.Instance.MorphlingCooldown + MapCooldown;
     public override float EffectDuration => OptionGroupSingleton<MorphlingOptions>.Instance.MorphlingDuration;
@@ -52,6 +52,11 @@ public sealed class MorphlingMorphButton : TownOfUsRoleButton<MorphlingRole>, IA
 
     public override bool CanUse()
     {
+        if (HudManager.Instance.Chat.IsOpenOrOpening || MeetingHud.Instance)
+        {
+            return false;
+        }
+
         if (PlayerControl.LocalPlayer.HasModifier<GlitchHackedModifier>() || PlayerControl.LocalPlayer.GetModifiers<DisabledModifier>().Any(x => !x.CanUseAbilities))
         {
             return false;
@@ -65,7 +70,7 @@ public sealed class MorphlingMorphButton : TownOfUsRoleButton<MorphlingRole>, IA
         if (!EffectActive)
         {
             PlayerControl.LocalPlayer.RpcAddModifier<MorphlingMorphModifier>(Role.Sampled!);
-            OverrideName("Unmorph");
+            OverrideName(TouLocale.Get("TouRoleMorphlingUnmorph", "Unmorph"));
             UsesLeft--;
             if (MaxUses != 0)
             {
@@ -75,7 +80,7 @@ public sealed class MorphlingMorphButton : TownOfUsRoleButton<MorphlingRole>, IA
         else
         {
             PlayerControl.LocalPlayer.RpcRemoveModifier<MorphlingMorphModifier>();
-            OverrideName("Morph");
+            OverrideName(TouLocale.Get("TouRoleMorphlingMorph", "Morph"));
         }
     }
 
@@ -84,6 +89,6 @@ public sealed class MorphlingMorphButton : TownOfUsRoleButton<MorphlingRole>, IA
         base.OnEffectEnd();
 
         PlayerControl.LocalPlayer.RpcRemoveModifier<MorphlingMorphModifier>();
-        OverrideName("Morph");
+        OverrideName(TouLocale.Get("TouRoleMorphlingMorph", "Morph"));
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AmongUs.Data;
 using MiraAPI.GameOptions;
-using MiraAPI.Modifiers;
 using MiraAPI.Utilities.Assets;
 using TownOfUs.Options.Modifiers;
 using TownOfUs.Options.Modifiers.Universal;
@@ -15,7 +14,8 @@ namespace TownOfUs.Modifiers.Game.Universal;
 
 public sealed class ShyModifier : UniversalGameModifier, IWikiDiscoverable
 {
-    public override string ModifierName => TouLocale.Get(TouNames.Shy, "Shy");
+    public override string LocaleKey => "Shy";
+    public override string ModifierName => TouLocale.Get($"TouModifier{LocaleKey}");
     public override LoadableAsset<Sprite>? ModifierIcon => TouModifierIcons.Shy;
 
     public override ModifierFaction FactionType => ModifierFaction.UniversalVisibility;
@@ -30,19 +30,16 @@ public sealed class ShyModifier : UniversalGameModifier, IWikiDiscoverable
     private DateTime LastMoved { get; set; }
     private bool StopShy { get; set; }
 
+    public override string GetDescription()
+    {
+        return TouLocale.GetParsed($"TouModifier{LocaleKey}TabDescription");
+    }
     public string GetAdvancedDescription()
     {
-        return
-            "You blend in with the environment, becoming transparent when staying still."
-            + MiscUtils.AppendOptionsText(GetType());
+        return TouLocale.GetParsed($"TouModifier{LocaleKey}WikiDescription") + MiscUtils.AppendOptionsText(GetType());
     }
 
     public List<CustomButtonWikiDescription> Abilities { get; } = [];
-
-    public override string GetDescription()
-    {
-        return "You become transparent when \nstanding still for a short duration.";
-    }
 
     public override int GetAssignmentChance()
     {
@@ -100,12 +97,6 @@ public sealed class ShyModifier : UniversalGameModifier, IWikiDiscoverable
         }
 
         if (PlayerControl.LocalPlayer == null)
-        {
-            return;
-        }
-
-        if (Player.HasModifier<InsaneModifier>()
-            && Player != PlayerControl.LocalPlayer)
         {
             return;
         }
